@@ -12,7 +12,7 @@ class Produccion extends Model
 
     protected $table = 'produccion';
 
-    protected $fillable = ['id_cultivo', 'fecha', 'cantidad'];
+    protected $fillable = ['id_cultivo', 'cantidad', 'fecha'];
 
     public function cultivo()
     {

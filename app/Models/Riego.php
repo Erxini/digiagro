@@ -12,7 +12,7 @@ class Riego extends Model
 
     protected $table = 'riegos';
 
-    protected $fillable = ['id_cultivo', 'fecha', 'cantidad'];
+    protected $fillable = ['id_cultivo', 'fecha_riego', 'cantidad_agua'];
 
     public function cultivo()
     {

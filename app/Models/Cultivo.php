@@ -11,7 +11,7 @@ class Cultivo extends Model
 
     protected $table = 'cultivos';
 
-    protected $fillable = ['nombre', 'tipo', 'ubicacion'];
+    protected $fillable = ['nombre', 'descripcion', 'ciclo_vida', 'tipo', 'ubicacion'];
 
     public function usuarios()
     {

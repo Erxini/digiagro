@@ -12,10 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cultivos', function (Blueprint $table) {
-            $table->id(); // Clave primaria
+            $table->id();
             $table->string('nombre');
             $table->text('descripcion');
-            $table->integer('ciclo_vida'); // Duración en días del ciclo de vida
+            $table->integer('ciclo_vida');
+            $table->string('tipo')->nullable();
+            $table->string('ubicacion')->nullable();
             $table->timestamps();
         });
     }

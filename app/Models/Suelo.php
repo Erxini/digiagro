@@ -10,12 +10,13 @@ class Suelo extends Model
 {
     use HasFactory;
 
-    protected $table = 'suelos';
+    protected $table = 'suelo';
 
-    protected $fillable = ['id_cultivo', 'tipo', 'ph'];
+    protected $fillable = ['id_cultivo', 'tipo', 'ph', 'humedad'];
 
     public function cultivo()
     {
         return $this->belongsTo(Cultivo::class, 'id_cultivo');
     }
 }
+

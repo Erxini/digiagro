@@ -4,17 +4,17 @@ namespace App\Models;
 
 use App\Models\Cultivo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Usuario extends Model
+class Usuario extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory;
 
-    protected $table = 'usuarios'; // Nombre de la tabla en la bd
-    protected $primaryKey = 'id'; // PK debe ser 'id' para coincidir con la migración
+    protected $table = 'usuarios';
+    protected $primaryKey = 'id';
     protected $fillable = ['nombre', 'email', 'password', 'rol', 'fecha_registro'];
-
-    // Contraseña cifrada
+    // contraseña cifrada
     protected $hidden = ['password', 'remember_token'];
 
     public function cultivos()

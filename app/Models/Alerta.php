@@ -12,7 +12,7 @@ class Alerta extends Model
 
     protected $table = 'alertas';
 
-    protected $fillable = ['id_cultivo', 'mensaje', 'fecha'];
+    protected $fillable = ['id_cultivo', 'tipo_alerta', 'descripcion', 'fecha_alerta'];
 
     public function cultivo()
     {

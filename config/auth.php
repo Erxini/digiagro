@@ -59,11 +59,11 @@ return [
     |
     */
 
-   'providers' => [
-    'usuarios' => [
-        'driver' => 'eloquent',
-        'model' => App\Models\Usuario::class, // Aquí debes crear un modelo de Usuario
-    ],
+    'providers' => [
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Usuario::class,
+        ],
 
         // 'users' => [
         //     'driver' => 'database',
