@@ -9,7 +9,7 @@ class CreateUsuariosCultivosTable extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
         Schema::create('usuarios_cultivos', function (Blueprint $table) {
             $table->id();
@@ -17,6 +17,7 @@ class CreateUsuariosCultivosTable extends Migration
             $table->unsignedBigInteger('id_cultivo');
             $table->timestamps();
 
+            // Claves foráneas
             $table->foreign('id_usuario')->references('id')->on('usuarios')->onDelete('cascade');
             $table->foreign('id_cultivo')->references('id')->on('cultivos')->onDelete('cascade');
         });
@@ -27,6 +28,11 @@ class CreateUsuariosCultivosTable extends Migration
      */
     public function down(): void
     {
+        // Eliminar las claves foráneas antes de eliminar la tabla
+        Schema::table('usuarios_cultivos', function (Blueprint $table) {
+            $table->dropForeign(['id_usuario']);
+            $table->dropForeign(['id_cultivo']);
+        });
         Schema::dropIfExists('usuarios_cultivos');
     }
 }

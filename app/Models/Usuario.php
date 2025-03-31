@@ -4,18 +4,33 @@ namespace App\Models;
 
 use App\Models\Cultivo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Hash;
 
-class Usuario extends Authenticatable
+class Usuario extends Model
 {
-    use HasApiTokens, HasFactory;
+    use HasFactory;
 
     protected $table = 'usuarios';
     protected $primaryKey = 'id';
-    protected $fillable = ['nombre', 'email', 'password', 'rol', 'fecha_registro'];
-    // contraseña cifrada
+    protected $fillable = ['nombre', 'email', 'password', 'rol'];
     protected $hidden = ['password', 'remember_token'];
+
+    public static $rolesPermitidos = ['admin', 'agricultor', 'tecnico'];
+
+    // Hash automático para contraseñas
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = Hash::make($value);
+    }
+
+    public function setRolAttribute($value)
+    {
+        if (!in_array($value, self::$rolesPermitidos)) {
+            throw new \InvalidArgumentException("El rol '{$value}' no es válido.");
+        }
+        $this->attributes['rol'] = $value;
+    }
 
     public function cultivos()
     {

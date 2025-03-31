@@ -13,7 +13,7 @@ class UsuarioFactory extends Factory
     public function definition(): array
     {
         return [
-            'nombre' => $this->faker->name(), // Campo correcto
+            'nombre' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'password' => bcrypt('password'), // Contraseña genérica
             'rol' => $this->faker->randomElement(['agricultor', 'administrador']),

@@ -4,31 +4,22 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateUsuariosTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('usuarios', function (Blueprint $table) {
-            $table->id(); // PK
+            $table->id(); // unsignedBigInteger por defecto
             $table->string('nombre');
             $table->string('email')->unique();
             $table->string('password');
-            $table->enum('rol', ['agricultor', 'administrador']);
-            $table->timestamp('fecha_registro')->useCurrent();
-            $table->rememberToken();
+            $table->string('rol')->default('agricultor'); // Valor por defecto 'agricultor'
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('usuarios_cultivos'); // Eliminar primero la tabla dependiente
         Schema::dropIfExists('usuarios');
     }
-};
+}
