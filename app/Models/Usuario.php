@@ -5,16 +5,15 @@ namespace App\Models;
 use App\Models\Cultivo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
 
 class Usuario extends Authenticatable
 {
-    use HasApiTokens, HasFactory;
+    use HasFactory, Notifiable;
 
     protected $table = 'usuarios';
     protected $primaryKey = 'id';
-    protected $fillable = ['nombre', 'email', 'password', 'rol', 'fecha_registro'];
-    // contraseña cifrada
+    protected $fillable = ['nombre', 'email', 'password', 'rol'];
     protected $hidden = ['password', 'remember_token'];
 
     public function cultivos()

@@ -17,8 +17,6 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('rol', ['agricultor', 'administrador']);
-            $table->timestamp('fecha_registro')->useCurrent();
-            $table->rememberToken();
             $table->timestamps();
         });
     }
