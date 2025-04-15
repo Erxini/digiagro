@@ -103,7 +103,7 @@ function Footer() {
                   rel="noopener noreferrer"
                   className="text-dark text-decoration-none"
                 >
-                  https://agroecologia.net/
+                  https://agroecologia.net
                 </a>
               </li>
               <li>

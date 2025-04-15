@@ -7,7 +7,9 @@ function Header() {
             className="d-flex align-items-center justify-content-between px-4 fixed-top"
             style={{ height: '120px', backgroundColor: '#4CAF50', color: 'black' }}
           >
-            <img src={logo} alt="Logo" style={{ height: '90px' }} />
+            <Link to="/">
+              <img src={logo} alt="Logo" style={{ height: '90px', cursor: 'pointer' }} />
+            </Link>
             <nav>
               <ul className="nav">
                 <li className="nav-item">
