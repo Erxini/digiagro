@@ -1,0 +1,39 @@
+.login-register-wrapper {
+    width: 900px;
+    height: 500px;
+    position: relative;
+  }
+  
+  .login-form,
+  .register-form {
+    width: 50%;
+    z-index: 2;
+  }
+  
+  .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: all 0.5s ease-in-out;
+    z-index: 3;
+    pointer-events: none;
+  }
+  
+  .slide-left {
+    transform: translateX(100%);
+  }
+  
+  .slide-right {
+    transform: translateX(0%);
+  }
+  .custom-footer {
+    width: 900px;
+    text-align: center;
+    padding: 1rem;
+    background-color: #f0f0f0;
+    border-top: 1px solid #ccc;
+  }
+  
