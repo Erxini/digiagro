@@ -117,6 +117,18 @@ const { Usuarios } = require("../database/models/usuarios");
     }
   };
 
+  // Verificar si hay usuarios en la base de datos (para depuración)
+  const checkUsuarios = async (req, res) => {
+    try {
+      const count = await UsuariosService.countUsuarios();
+      res.json({ 
+        count: count,
+        message: count > 0 ? "Hay usuarios en la base de datos" : "No hay usuarios en la base de datos"
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
 
 module.exports = {
   getAllUsuarios,
@@ -128,4 +140,5 @@ module.exports = {
   getLogin,
   deleteUsuario,
   deleteAllUsuarios,
+  checkUsuarios
 };

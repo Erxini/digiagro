@@ -11,6 +11,9 @@ router.post("/", UsuariosController.createUsuario);
 // 7. Autenticar usuario (login)
 router.post("/login", UsuariosController.getLogin);
 
+// Ruta para verificar si hay usuarios en la base de datos (solo para depuración)
+router.get("/check", UsuariosController.checkUsuarios);
+
 // Rutas protegidas - requieren autenticación
 // 1. Obtener todos los usuarios - solo para administradores
 router.get("/", authMiddleware, roleMiddleware(["Admin"]), UsuariosController.getAllUsuarios);

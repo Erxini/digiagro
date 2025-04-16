@@ -25,6 +25,11 @@ export const useAuth = () => {
         setUser(userData);
         setToken(storedToken);
         setIsAuthenticated(true);
+        
+        // Verificar si userData tiene las propiedades esperadas
+        if (!userData.nombre || !userData.email || !userData.rol) {
+          console.warn('Datos de usuario incompletos en localStorage');
+        }
       } catch (err) {
         console.error('Error al recuperar datos del usuario:', err);
         localStorage.removeItem('user');
@@ -41,6 +46,13 @@ export const useAuth = () => {
       const response = await post('usuarios/login', credentials);
       
       if (response && response.usuario && response.token) {
+        // Validar que tengamos todos los datos necesarios del usuario
+        if (!response.usuario.nombre || !response.usuario.email || !response.usuario.rol) {
+          console.warn('La respuesta del servidor no incluye todos los datos requeridos del usuario');
+        }
+        
+        console.log('Datos del usuario recibidos:', response.usuario); // Para depuración
+        
         // Guardar usuario y token por separado
         localStorage.setItem('user', JSON.stringify(response.usuario));
         localStorage.setItem('token', response.token);
@@ -49,10 +61,13 @@ export const useAuth = () => {
         setToken(response.token);
         setIsAuthenticated(true);
         
-        // Redirigir según el rol
+        // Redirigir según el rol (asegurándonos de realizar la comparación correcta)
+        console.log('Rol del usuario:', response.usuario.rol);
         if (response.usuario.rol === 'Admin') {
+          console.log('Redirigiendo a /admin');
           navigate('/admin');
         } else {
+          console.log('Redirigiendo a /principal');
           navigate('/principal');
         }
         
@@ -61,6 +76,7 @@ export const useAuth = () => {
       
       return false;
     } catch (err) {
+      console.error('Error completo al iniciar sesión:', err);
       setAuthError(error || 'Error al iniciar sesión');
       return false;
     }

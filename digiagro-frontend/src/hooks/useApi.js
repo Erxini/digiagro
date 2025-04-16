@@ -74,6 +74,8 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
     setError(null);
     
     try {
+      console.log(`Realizando POST a ${baseUrl}/${endpoint} con datos:`, body);
+      
       const response = await fetch(`${baseUrl}/${endpoint}`, {
         method: 'POST',
         headers: {
@@ -85,15 +87,39 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
         ...options
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error en la petición');
+      // Capturar el texto de la respuesta primero para poder inspeccionarlo
+      const responseText = await response.text();
+      console.log(`Respuesta recibida de ${endpoint}:`, responseText);
+      
+      // Si no hay contenido, devolvemos un objeto vacío o null
+      if (!responseText) {
+        console.log('La respuesta está vacía');
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        return response.status === 204 ? {} : null;
       }
       
-      const result = await response.json();
-      setData(result);
-      return result;
+      // Intentamos parsear la respuesta como JSON
+      let responseData;
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Error al parsear la respuesta como JSON:', e);
+        throw new Error('La respuesta del servidor no es un JSON válido');
+      }
+      
+      // Si la respuesta no es exitosa, lanzamos el error
+      if (!response.ok) {
+        const errorMessage = responseData.error || `Error ${response.status}: ${response.statusText}`;
+        console.error('Error en la petición:', errorMessage);
+        throw new Error(errorMessage);
+      }
+      
+      setData(responseData);
+      return responseData;
     } catch (err) {
+      console.error('Error completo en la petición POST:', err);
       setError(err.message || 'Error desconocido');
       return null;
     } finally {

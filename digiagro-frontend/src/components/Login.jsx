@@ -6,7 +6,20 @@ import { useAuth } from '../hooks/useAuth';
 
 function Login() {
   const [hovered, setHovered] = useState('register'); // Estado inicial en 'register'
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 800);
   const { register, login, authError } = useAuth();
+  
+  // Función para actualizar el estado isMobile cuando cambia el tamaño de la pantalla
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 800);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   
   // Funciones de validación
   const validateRegister = (values) => {
@@ -108,9 +121,21 @@ function Login() {
   // Función para manejar el login
   const submitLogin = async () => {
     try {
+      console.log('Intentando iniciar sesión con:', loginValues);
       await login(loginValues);
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
+    }
+  };
+
+  // Determinar la clase del overlay según el estado y si es móvil o no
+  const getOverlayClass = () => {
+    if (!hovered) return '';
+    
+    if (isMobile) {
+      return hovered === 'login' ? 'slide-up' : hovered === 'register' ? 'slide-down' : '';
+    } else {
+      return hovered === 'login' ? 'slide-left' : hovered === 'register' ? 'slide-right' : '';
     }
   };
 
@@ -121,8 +146,8 @@ function Login() {
     >
       <div className="container-fluid d-flex justify-content-center">
         <div
-          className="login-register-wrapper d-flex position-relative"
-          style={{ margin: '0 200px' }}
+          className={`login-register-wrapper position-relative ${isMobile ? 'd-flex flex-column' : 'd-flex'}`}
+          style={{ margin: isMobile ? '0 auto' : '0 200px' }}
         >
           {/* Login Form */}
           <div className="login-form p-4 bg-white shadow position-relative z-2"
@@ -240,7 +265,7 @@ function Login() {
                   onBlur={handleRegisterBlur}
                 >
                   <option value="">Seleccionar rol</option>
-                  {/* <option value="Admin">Administrador</option> */}
+                  <option value="Admin">Administrador</option>
                   <option value="Tec">Técnico</option>
                   <option value="Agri">Agricultor</option>
                 </select>
@@ -254,8 +279,8 @@ function Login() {
             </form>
           </div>
 
-          {/* Overlay */}
-          <div className={`overlay ${hovered === 'login' ? 'slide-left' : hovered === 'register' ? 'slide-right' : ''}`}></div>
+          {/* Overlay con clases dinámicas según el estado y dispositivo */}
+          <div className={`overlay ${getOverlayClass()}`}></div>
         </div>
       </div>
     </div>

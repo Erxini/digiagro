@@ -11,7 +11,7 @@ const sequelize = require("./database/db.js");
 require("./database/associations.js")
 
 // Conversión a json datos que nos envían para post, put, patch...
-app.use(cors());
+app.use(cors({origin: '*'})); //OJo cambiar en producción!!
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -24,6 +24,6 @@ app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 
   sequelize
-  .sync({force: true})//cambiar a false para producción
+  .sync({force: false})// Cambiar a true si quiero mantener los datos entre reinicios
   .then(() => console.log('Conectado a digiagro')) 
 });

@@ -159,6 +159,15 @@ const verifyToken = (token) => {
   }
 }
 
+// Contar usuarios (para depuración)
+const countUsuarios = async () => {
+  try {
+    return await Usuario.count();
+  } catch (error) {
+    throw new Error("Error al contar usuarios: " + error.message);
+  }
+};
+
 module.exports = { 
   getAllUsuarios,
   getUsuarioById,
@@ -169,5 +178,6 @@ module.exports = {
   getLogin,
   deleteUsuario,
   deleteAllUsuarios,
-  verifyToken
+  verifyToken,
+  countUsuarios
 };
