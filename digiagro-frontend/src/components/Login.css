@@ -108,3 +108,46 @@
     margin-bottom: 1rem;
     border-radius: 0.25rem;
   }
+  
+  /* Estilos para los placeholders */
+  ::placeholder {
+    color: #aaa !important;
+    opacity: 1 !important;
+    text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8);
+  }
+  
+  /* Para Firefox */
+  ::-moz-placeholder {
+    color: #aaa !important;
+    opacity: 1 !important;
+    text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8);
+  }
+  
+  /* Para Internet Explorer */
+  :-ms-input-placeholder {
+    color: #aaa !important;
+    text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8);
+  }
+  
+  /* Para Microsoft Edge */
+  ::-ms-input-placeholder {
+    color: #aaa !important;
+    text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8);
+  }
+  
+  /* Para WebKit/Blink (Chrome, Safari) */
+  ::-webkit-input-placeholder {
+    color: #146d2e !important;
+    text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8);
+  }
+  
+  /* Estilo adicional para los inputs */
+  .login-form input, .register-form input, .login-form select, .register-form select {
+    background-color: #f8f8f8;
+    transition: all 0.3s ease;
+  }
+  
+  .login-form input:focus, .register-form input:focus, .login-form select:focus, .register-form select:focus {
+    background-color: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  }

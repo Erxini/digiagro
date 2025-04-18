@@ -9,7 +9,7 @@ function Login() {
   const [hovered, setHovered] = useState('register'); // Estado inicial en 'register'
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 800);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const { register, login, authError } = useAuth();
+  const { register, login, authError, loginFieldErrors } = useAuth(); // Añadido loginFieldErrors
   
   // Función para actualizar el estado isMobile cuando cambia el tamaño de la pantalla
   useEffect(() => {
@@ -49,6 +49,14 @@ function Login() {
       errors.password = 'La contraseña debe tener al menos 6 caracteres';
     }
     
+    // Validar teléfono
+    const telefonoRegex = /^[0-9]{10}$/;
+    if (!values.telefono?.trim()) {
+      errors.telefono = 'El teléfono es obligatorio';
+    } else if (!telefonoRegex.test(values.telefono.trim())) {
+      errors.telefono = 'Ingrese un teléfono válido de 10 dígitos';
+    }
+    
     // Validar rol
     if (!values.rol?.trim()) {
       errors.rol = 'Debe seleccionar un rol';
@@ -85,7 +93,7 @@ function Login() {
     handleSubmit: handleRegisterSubmit,
     resetForm: resetRegisterForm
   } = useFormValidation(
-    { nombre: '', email: '', password: '', rol: '' },
+    { nombre: '', email: '', password: '', telefono: '', rol: '' },
     validateRegister
   );
   
@@ -126,6 +134,7 @@ function Login() {
     try {
       console.log('Intentando iniciar sesión con:', loginValues);
       await login(loginValues);
+      // No hacer nada más aquí, el hook useAuth se encarga de la redirección si es exitoso
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
     }
@@ -150,12 +159,12 @@ function Login() {
   return (
     <div
       className="d-flex justify-content-center align-items-center"
-      style={{ minHeight: '100vh', marginTop: '40px' }}
+      style={{ minHeight: '100vh', marginTop: '40px' , marginBottom: '0px' }}
     >
       <div className="container-fluid d-flex justify-content-center">
         <div
           className={`login-register-wrapper position-relative ${isMobile ? 'd-flex flex-column' : 'd-flex'}`}
-          style={{ margin: isMobile ? '0 auto' : '0 200px' }}
+          style={{ margin: isMobile ? '0 auto' : '-20px 150px' }}
         >
           {/* Login Form */}
           <div className="login-form p-4 bg-white shadow position-relative z-2"
@@ -163,39 +172,40 @@ function Login() {
             onMouseLeave={() => setHovered(null)}
           >
             <h3 className="mb-3">Iniciar Sesión</h3>
-            {authError && <div className="alert alert-danger">{authError}</div>}
+            {/* Solo mostramos el error general si no hay errores específicos de campo */}
+            {authError && !Object.keys(loginFieldErrors).length > 0 && 
+              <div className="alert alert-danger">{authError}</div>
+            }
             <form onSubmit={handleLoginSubmit(submitLogin)}>
               <div className="mb-3 text-start">
-                <label className="form-label">Email</label>
                 <input 
                   type="email" 
                   name="email"
-                  className={`form-control ${loginErrors.email ? 'is-invalid' : ''}`}
+                  className={`form-control ${loginErrors.email || loginFieldErrors.email ? 'is-invalid' : ''}`}
                   placeholder="Correo electrónico"
                   value={loginValues.email}
                   onChange={handleLoginChange}
                   onBlur={handleLoginBlur}
                 />
-                {loginErrors.email && 
+                {(loginErrors.email || loginFieldErrors.email) && 
                   <div className="invalid-feedback" style={{ display: 'block', color: 'red' }}>
-                    {loginErrors.email}
+                    {loginFieldErrors.email || loginErrors.email}
                   </div>
                 }
               </div>
               <div className="mb-3 text-start">
-                <label className="form-label">Contraseña</label>
                 <input 
                   type="password" 
                   name="password"
-                  className={`form-control ${loginErrors.password ? 'is-invalid' : ''}`} 
+                  className={`form-control ${loginErrors.password || loginFieldErrors.password ? 'is-invalid' : ''}`} 
                   placeholder="Contraseña"
                   value={loginValues.password}
                   onChange={handleLoginChange}
                   onBlur={handleLoginBlur}
                 />
-                {loginErrors.password && 
+                {(loginErrors.password || loginFieldErrors.password) && 
                   <div className="invalid-feedback" style={{ display: 'block', color: 'red' }}>
-                    {loginErrors.password}
+                    {loginFieldErrors.password || loginErrors.password}
                   </div>
                 }
               </div>
@@ -213,7 +223,7 @@ function Login() {
             {authError && <div className="alert alert-danger">{authError}</div>}
             <form onSubmit={handleRegisterSubmit(submitRegister)}>
               <div className="mb-3 text-start">
-                <label className="form-label">Nombre</label>
+                {/* <label className="form-label">Nombre</label> */}
                 <input
                   type="text"
                   name="nombre"
@@ -230,7 +240,7 @@ function Login() {
                 }
               </div>
               <div className="mb-3 text-start">
-                <label className="form-label">Email</label>
+                {/* <label className="form-label">Email</label> */}
                 <input
                   type="email"
                   name="email"
@@ -247,7 +257,7 @@ function Login() {
                 }
               </div>
               <div className="mb-3 text-start">
-                <label className="form-label">Contraseña</label>
+                {/* <label className="form-label">Contraseña</label> */}
                 <input
                   type="password"
                   name="password"
@@ -264,7 +274,24 @@ function Login() {
                 }
               </div>
               <div className="mb-3 text-start">
-                <label className="form-label">Rol</label>
+                {/* <label className="form-label">Teléfono</label> */}
+                <input
+                  type="text"
+                  name="telefono"
+                  className={`form-control ${registerErrors.telefono ? 'is-invalid' : ''}`}
+                  placeholder="Teléfono"
+                  value={registerValues.telefono}
+                  onChange={handleRegisterChange}
+                  onBlur={handleRegisterBlur}
+                />
+                {registerErrors.telefono && 
+                  <div className="invalid-feedback" style={{ display: 'block', color: 'red' }}>
+                    {registerErrors.telefono}
+                  </div>
+                }
+              </div>
+              <div className="mb-3 text-start">
+                {/* <label className="form-label">Rol</label> */}
                 <select
                   name="rol"
                   className={`form-select ${registerErrors.rol ? 'is-invalid' : ''}`}
@@ -273,7 +300,7 @@ function Login() {
                   onBlur={handleRegisterBlur}
                 >
                   <option value="">Seleccionar rol</option>
-                  <option value="Admin">Administrador</option>
+                  {/* <option value="Admin">Administrador</option> */}
                   <option value="Tec">Técnico</option>
                   <option value="Agri">Agricultor</option>
                 </select>

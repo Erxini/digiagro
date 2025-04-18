@@ -11,6 +11,7 @@ export const useAuth = () => {
   const [token, setToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authError, setAuthError] = useState(null);
+  const [loginFieldErrors, setLoginFieldErrors] = useState({}); // Nuevo estado para errores específicos de campos
   const { post, error } = useApi();
   const navigate = useNavigate();
 
@@ -41,6 +42,7 @@ export const useAuth = () => {
   // Función para iniciar sesión
   const login = async (credentials) => {
     setAuthError(null);
+    setLoginFieldErrors({}); // Limpiar errores de campo al intentar un nuevo login
     
     try {
       console.log('Enviando credenciales al servidor:', credentials);
@@ -75,12 +77,28 @@ export const useAuth = () => {
         return true;
       } else {
         console.error('Respuesta incompleta del servidor:', response);
-        setAuthError('Respuesta incompleta del servidor');
+        // En lugar de mostrar un error general, marcamos este como un error de credenciales
+        setLoginFieldErrors({
+          password: 'Contraseña incorrecta'
+        });
         return false;
       }
     } catch (err) {
       console.error('Error completo al iniciar sesión:', err);
-      setAuthError(error || 'Error al iniciar sesión');
+      
+      // Siempre establecer el error de contraseña para fallos de autenticación
+      if (error) {
+        // Independientemente del mensaje específico, lo tratamos como contraseña incorrecta
+        // ya que es la experiencia que queremos dar al usuario
+        setLoginFieldErrors({
+          password: 'Contraseña incorrecta'
+        });
+      } else {
+        setLoginFieldErrors({
+          password: 'Contraseña incorrecta'
+        });
+      }
+      
       return false;
     }
   };
@@ -123,6 +141,7 @@ export const useAuth = () => {
     token,
     isAuthenticated,
     authError,
+    loginFieldErrors, // Exportar el nuevo estado
     login,
     register,
     logout,

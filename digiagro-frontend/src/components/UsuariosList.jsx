@@ -11,15 +11,24 @@ const UsuariosList = ({ usuarios, onClose, onRefresh }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [editForm, setEditForm] = useState({
     nombre: '',
     email: '',
     telefono: '',
     rol: ''
   });
+  const [createForm, setCreateForm] = useState({
+    nombre: '',
+    email: '',
+    password: '',
+    telefono: '',
+    rol: 'Agri'
+  });
   const [formErrors, setFormErrors] = useState({});
+  const [createFormErrors, setCreateFormErrors] = useState({});
   
-  const { del, put } = useApi();
+  const { del, put, post } = useApi();
 
   // Inicializar usuarios ordenados cuando cambia la prop de usuarios
   useEffect(() => {
@@ -139,16 +148,53 @@ const UsuariosList = ({ usuarios, onClose, onRefresh }) => {
   const handleUpdateUsuario = async () => {
     if (!selectedUsuario) return;
 
+    // Validar formulario
+    const errors = {};
+    if (!editForm.nombre) errors.nombre = "El nombre es obligatorio";
+    if (!editForm.email) errors.email = "El email es obligatorio";
+    
+    // Verificación para evitar que un administrador cambie su rol
+    if (selectedUsuario.rol === 'Admin' && editForm.rol !== 'Admin') {
+      errors.rol = "No se puede cambiar el rol de un administrador";
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
     try {
       await put(`usuarios/${selectedUsuario.id_usuario}`, editForm);
       setShowEditModal(false);
       setSelectedUsuario(null);
+      setFormErrors({});
       
       // Refrescar la lista de usuarios después de actualizar
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error('Error al actualizar usuario:', error);
       alert('Error al actualizar el usuario.');
+    }
+  };
+
+  // Crear usuario
+  const handleCreateUsuario = async () => {
+    try {
+      await post('usuarios', createForm);
+      setShowCreateModal(false);
+      setCreateForm({
+        nombre: '',
+        email: '',
+        password: '',
+        telefono: '',
+        rol: 'Agri'
+      });
+      
+      // Refrescar la lista de usuarios después de crear
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error('Error al crear usuario:', error);
+      alert('Error al crear el usuario.');
     }
   };
 
@@ -288,10 +334,16 @@ const UsuariosList = ({ usuarios, onClose, onRefresh }) => {
               Eliminar todos los usuarios
             </Button>
           </div>
-          <Button variant="accent-brown" className="text-white" onClick={onRefresh}>
-            <i className="fas fa-sync-alt me-1"></i>
-            Actualizar
-          </Button>
+          <div>
+            <Button variant="accent-brown" className="text-white me-2" onClick={() => setShowCreateModal(true)}>
+              <i className="fas fa-user-plus me-1"></i>
+              Crear Usuario
+            </Button>
+            <Button variant="accent-brown" className="text-white" onClick={onRefresh}>
+              <i className="fas fa-sync-alt me-1"></i>
+              Actualizar
+            </Button>
+          </div>
         </div>
       </Card.Body>
 
@@ -400,6 +452,80 @@ const UsuariosList = ({ usuarios, onClose, onRefresh }) => {
           </Button>
           <Button variant="primary" onClick={handleUpdateUsuario}>
             Guardar cambios
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de creación de usuario */}
+      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Crear Usuario</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Nombre</Form.Label>
+              <Form.Control
+                type="text"
+                value={createForm.nombre}
+                onChange={(e) => setCreateForm({ ...createForm, nombre: e.target.value })}
+                isInvalid={!!createFormErrors.nombre}
+              />
+              <Form.Control.Feedback type="invalid">
+                {createFormErrors.nombre}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                value={createForm.email}
+                onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                isInvalid={!!createFormErrors.email}
+              />
+              <Form.Control.Feedback type="invalid">
+                {createFormErrors.email}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Contraseña</Form.Label>
+              <Form.Control
+                type="password"
+                value={createForm.password}
+                onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                isInvalid={!!createFormErrors.password}
+              />
+              <Form.Control.Feedback type="invalid">
+                {createFormErrors.password}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Teléfono</Form.Label>
+              <Form.Control
+                type="text"
+                value={createForm.telefono}
+                onChange={(e) => setCreateForm({ ...createForm, telefono: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Rol</Form.Label>
+              <Form.Select
+                value={createForm.rol}
+                onChange={(e) => setCreateForm({ ...createForm, rol: e.target.value })}
+              >
+                <option value="Admin">Administrador</option>
+                <option value="Tec">Técnico</option>
+                <option value="Agri">Agricultor</option>
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="primary" onClick={handleCreateUsuario}>
+            Crear Usuario
           </Button>
         </Modal.Footer>
       </Modal>
