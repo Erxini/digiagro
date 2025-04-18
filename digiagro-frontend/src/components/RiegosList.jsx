@@ -1,49 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Form, InputGroup, Row, Col, Modal } from 'react-bootstrap';
 import { useApi } from '../hooks/useApi';
+import { useAuth } from '../hooks/useAuth';
 
-const ProduccionList = ({ producciones, onClose, onRefresh }) => {
-  const [sortedProducciones, setSortedProducciones] = useState([]);
-  const [sortField, setSortField] = useState('id_produccion');
+const RiegosList = ({ riegos = [], onClose, onRefresh }) => {
+  const { user } = useAuth();
+  const [sortedRiegos, setSortedRiegos] = useState([]);
+  const [sortField, setSortField] = useState('id_riego');
   const [sortDirection, setSortDirection] = useState('asc');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProduccion, setSelectedProduccion] = useState(null);
+  const [selectedRiego, setSelectedRiego] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editForm, setEditForm] = useState({
-    id_cultivo: '',
-    cantidad: '',
     fecha: '',
-    calidad: ''
+    cantidad_agua: '',
+    observaciones: ''
   });
   const [createForm, setCreateForm] = useState({
     id_cultivo: '',
-    cantidad: '',
     fecha: new Date().toISOString().split('T')[0],
-    calidad: ''
+    cantidad_agua: '',
+    observaciones: ''
   });
   const [formErrors, setFormErrors] = useState({});
   const [createFormErrors, setCreateFormErrors] = useState({});
   
   const { del, put, post } = useApi();
 
+  // Inicializar riegos ordenados cuando cambia la prop de riegos
   useEffect(() => {
-    if (producciones && producciones.length > 0) {
+    // Asegurarse de que riegos es un array
+    const riegosArray = Array.isArray(riegos) ? riegos : [];
+    
+    if (riegosArray.length > 0) {
       handleSort(sortField, sortDirection);
     } else {
-      setSortedProducciones([]);
+      setSortedRiegos([]);
     }
-  }, [producciones]);
+  }, [riegos]);
 
+  // Función para ordenar riegos
   const handleSort = (field, direction = sortDirection) => {
-    if (!producciones) return;
+    // Asegurarse de que riegos es un array
+    const riegosArray = Array.isArray(riegos) ? riegos : [];
     
-    const sortedData = [...producciones].sort((a, b) => {
+    const sortedData = [...riegosArray].sort((a, b) => {
       let aValue = a[field];
       let bValue = b[field];
       
+      // Convertir a minúsculas si es string para ordenamiento no sensible a mayúsculas
       if (typeof aValue === 'string') aValue = aValue.toLowerCase();
       if (typeof bValue === 'string') bValue = bValue.toLowerCase();
       
@@ -52,16 +60,18 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
       return 0;
     });
     
-    setSortedProducciones(sortedData);
+    setSortedRiegos(sortedData);
     setSortField(field);
   };
 
+  // Cambiar dirección de ordenamiento
   const toggleSortDirection = () => {
     const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
     setSortDirection(newDirection);
     handleSort(sortField, newDirection);
   };
 
+  // Renderizar indicador de ordenamiento
   const renderSortIndicator = (field) => {
     if (sortField === field) {
       return <i className={`fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'} ms-1`}></i>;
@@ -69,84 +79,74 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
     return <i className="fas fa-sort ms-1 text-muted"></i>;
   };
 
-  const filteredProducciones = sortedProducciones.filter(produccion => {
+  // Filtrar riegos por término de búsqueda
+  const filteredRiegos = sortedRiegos.filter(riego => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
-      produccion.id_produccion.toString().includes(term) ||
-      produccion.id_cultivo.toString().includes(term) ||
-      produccion.cantidad.toString().includes(term) ||
-      (new Date(produccion.fecha).toLocaleDateString()).includes(term) ||
-      (produccion.calidad && produccion.calidad.toLowerCase().includes(term))
+      (riego.id_riego?.toString() || '').includes(term) ||
+      (riego.id_cultivo?.toString() || '').includes(term) ||
+      (riego.fecha ? new Date(riego.fecha).toLocaleDateString() : '').includes(term) ||
+      (riego.cantidad_agua?.toString() || '').includes(term) ||
+      ((riego.observaciones?.toLowerCase() || '')).includes(term)
     );
   });
 
+  // Función para formatear fechas
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString();
   };
 
-  const getCalidadBadge = (calidad) => {
-    if (!calidad) return <span className="badge bg-secondary-subtle text-dark">No especificada</span>;
-    
-    // Evitamos problemas de traducción usando camelCase y asegurándonos de devolver valores exactos
-    switch (calidad.toLowerCase()) {
-      case 'alta':
-        return <span className="badge bg-success-subtle text-dark">Alta</span>;
-      case 'media':
-        return <span className="badge bg-warning-subtle text-dark">Media</span>; // Aseguramos que solo muestra "Media"
-      case 'baja':
-        return <span className="badge bg-danger-subtle text-dark">Baja</span>;
-      default:
-        return <span className="badge bg-info-subtle text-dark">{calidad}</span>;
-    }
-  };
-
-  const handleDeleteProduccion = async () => {
-    if (!selectedProduccion) return;
+  // Eliminar riego
+  const handleDeleteRiego = async () => {
+    if (!selectedRiego) return;
     
     try {
-      await del(`produccion/${selectedProduccion.id_produccion}`);
+      await del(`riegos/${selectedRiego.id_riego}`);
       setShowDeleteModal(false);
-      setSelectedProduccion(null);
+      setSelectedRiego(null);
       
+      // Refrescar la lista de riegos después de eliminar
       if (onRefresh) onRefresh();
     } catch (error) {
-      console.error('Error al eliminar producción:', error);
-      alert('Error al eliminar la producción.');
+      console.error('Error al eliminar riego:', error);
+      alert('Error al eliminar el riego.');
     }
   };
 
-  const handleDeleteAllProducciones = async () => {
+  // Eliminar todos los riegos
+  const handleDeleteAllRiegos = async () => {
     try {
-      await del('produccion');
+      await del('riegos');
       setShowDeleteAllModal(false);
       
+      // Refrescar la lista de riegos después de eliminar todos
       if (onRefresh) onRefresh();
     } catch (error) {
-      console.error('Error al eliminar todas las producciones:', error);
-      alert('Error al eliminar todas las producciones.');
+      console.error('Error al eliminar todos los riegos:', error);
+      alert('Error al eliminar todos los riegos.');
     }
   };
 
-  const handleEditProduccion = (produccion) => {
-    setSelectedProduccion(produccion);
+  // Abrir modal de edición
+  const handleEditRiego = (riego) => {
+    setSelectedRiego(riego);
     setEditForm({
-      id_cultivo: produccion.id_cultivo.toString(),
-      cantidad: produccion.cantidad.toString(),
-      fecha: produccion.fecha ? new Date(produccion.fecha).toISOString().split('T')[0] : '',
-      calidad: produccion.calidad || ''
+      fecha: riego.fecha ? new Date(riego.fecha).toISOString().split('T')[0] : '',
+      cantidad_agua: riego.cantidad_agua || '',
+      observaciones: riego.observaciones || ''
     });
     setShowEditModal(true);
   };
 
-  const handleUpdateProduccion = async () => {
-    if (!selectedProduccion) return;
+  // Actualizar riego
+  const handleUpdateRiego = async () => {
+    if (!selectedRiego) return;
 
     const errors = {};
-    if (!editForm.id_cultivo) errors.id_cultivo = "El ID del cultivo es obligatorio";
-    if (!editForm.cantidad) errors.cantidad = "La cantidad es obligatoria";
     if (!editForm.fecha) errors.fecha = "La fecha es obligatoria";
+    if (!editForm.cantidad_agua) errors.cantidad_agua = "La cantidad de agua es obligatoria";
     
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -154,69 +154,70 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
     }
 
     try {
-      const updatedProduccion = {
-        ...selectedProduccion,
-        id_cultivo: parseInt(editForm.id_cultivo),
-        cantidad: parseFloat(editForm.cantidad),
-        fecha: editForm.fecha,
-        calidad: editForm.calidad
+      const updatedRiego = {
+        ...selectedRiego,
+        ...editForm,
+        cantidad_agua: parseFloat(editForm.cantidad_agua)
       };
-      await put(`produccion/${selectedProduccion.id_produccion}`, updatedProduccion);
+      await put(`riegos/${selectedRiego.id_riego}`, updatedRiego);
       setShowEditModal(false);
-      setSelectedProduccion(null);
+      setSelectedRiego(null);
       setFormErrors({});
       
+      // Refrescar la lista de riegos después de actualizar
       if (onRefresh) onRefresh();
     } catch (error) {
-      console.error('Error al actualizar producción:', error);
-      alert('Error al actualizar la producción.');
+      console.error('Error al actualizar riego:', error);
+      alert('Error al actualizar el riego.');
     }
   };
 
-  const handleCreateProduccion = async () => {
+  // Crear riego
+  const handleCreateRiego = async () => {
+    // Validar campos requeridos
     const errors = {};
     if (!createForm.id_cultivo) errors.id_cultivo = "El ID del cultivo es obligatorio";
-    if (!createForm.cantidad) errors.cantidad = "La cantidad es obligatoria";
     if (!createForm.fecha) errors.fecha = "La fecha es obligatoria";
+    if (!createForm.cantidad_agua) errors.cantidad_agua = "La cantidad de agua es obligatoria";
     
     if (Object.keys(errors).length > 0) {
       setCreateFormErrors(errors);
       return;
     }
-
+    
     try {
-      const newProduccion = {
-        id_cultivo: parseInt(createForm.id_cultivo),
-        cantidad: parseFloat(createForm.cantidad),
-        fecha: createForm.fecha,
-        calidad: createForm.calidad
+      // Aseguramos que estamos enviando los valores en el formato correcto
+      const riegoData = {
+        ...createForm,
+        cantidad_agua: parseFloat(createForm.cantidad_agua)
       };
       
-      await post('produccion', newProduccion);
+      await post('riegos', riegoData);
       setShowCreateModal(false);
       setCreateForm({
         id_cultivo: '',
-        cantidad: '',
         fecha: new Date().toISOString().split('T')[0],
-        calidad: ''
+        cantidad_agua: '',
+        observaciones: ''
       });
       setCreateFormErrors({});
       
+      // Refrescar la lista de riegos después de crear
       if (onRefresh) onRefresh();
     } catch (error) {
-      console.error('Error al crear producción:', error);
-      alert('Error al crear la producción.');
+      console.error('Error al crear riego:', error);
+      alert('Error al crear el riego. Por favor, verifica los datos e intenta nuevamente.');
     }
   };
 
   return (
     <Card className="mb-4 shadow-sm">
-      <Card.Header className="d-flex justify-content-between align-items-center bg-warning text-dark">
+      <Card.Header className="d-flex justify-content-between align-items-center bg-primary text-white">
         <h5 className="mb-0">
-          <i className="fas fa-chart-line me-2"></i>
-          Registro de Producciones
+          <i className="fas fa-tint me-2"></i>
+          Lista de Riegos
         </h5>
-        <Button variant="outline-dark" size="sm" onClick={onClose}>
+        <Button variant="outline-light" size="sm" onClick={onClose}>
           <i className="fas fa-times me-1"></i>
           Cerrar
         </Button>
@@ -230,7 +231,7 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
                 <i className="fas fa-search"></i>
               </InputGroup.Text>
               <Form.Control
-                placeholder="Buscar producciones..."
+                placeholder="Buscar riegos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -249,16 +250,15 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
               value={sortField}
               onChange={(e) => handleSort(e.target.value)}
             >
-              <option value="id_produccion">Ordenar por ID</option>
+              <option value="id_riego">Ordenar por ID</option>
               <option value="id_cultivo">Ordenar por Cultivo</option>
-              <option value="cantidad">Ordenar por Cantidad</option>
               <option value="fecha">Ordenar por Fecha</option>
-              <option value="calidad">Ordenar por Calidad</option>
+              <option value="cantidad_agua">Ordenar por Cantidad de agua</option>
             </Form.Select>
           </Col>
           <Col md={3}>
             <Button
-              variant="outline-warning"
+              variant="outline-primary"
               className="w-100"
               onClick={toggleSortDirection}
             >
@@ -268,49 +268,47 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
           </Col>
         </Row>
         
-        {filteredProducciones.length === 0 ? (
+        {filteredRiegos.length === 0 ? (
           <div className="text-center p-4 bg-light rounded">
             <i className="fas fa-info-circle fa-2x mb-3 text-muted"></i>
-            <p className="mb-0">No se encontraron producciones{searchTerm ? ' que coincidan con la búsqueda.' : '.'}</p>
+            <p className="mb-0">No se encontraron riegos{searchTerm ? ' que coincidan con la búsqueda.' : '.'}</p>
           </div>
         ) : (
           <div className="table-responsive">
             <Table striped hover className="align-middle">
               <thead className="table-light">
                 <tr>
-                  <th style={{cursor: 'pointer'}} onClick={() => handleSort('id_produccion')}>
-                    ID_produccion {renderSortIndicator('id_produccion')}
+                  <th style={{cursor: 'pointer'}} onClick={() => handleSort('id_riego')}>
+                    ID_riego {renderSortIndicator('id_riego')}
                   </th>
                   <th style={{cursor: 'pointer'}} onClick={() => handleSort('id_cultivo')}>
-                    ID Cultivo {renderSortIndicator('id_cultivo')}
-                  </th>
-                  <th style={{cursor: 'pointer'}} onClick={() => handleSort('cantidad')}>
-                    Cantidad {renderSortIndicator('cantidad')}
+                    Cultivo {renderSortIndicator('id_cultivo')}
                   </th>
                   <th style={{cursor: 'pointer'}} onClick={() => handleSort('fecha')}>
                     Fecha {renderSortIndicator('fecha')}
                   </th>
-                  <th style={{cursor: 'pointer'}} onClick={() => handleSort('calidad')}>
-                    Calidad {renderSortIndicator('calidad')}
+                  <th style={{cursor: 'pointer'}} onClick={() => handleSort('cantidad_agua')}>
+                    Cantidad Agua (L) {renderSortIndicator('cantidad_agua')}
                   </th>
+                  <th>Observaciones</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredProducciones.map(produccion => (
-                  <tr key={produccion.id_produccion}>
-                    <td>{produccion.id_produccion}</td>
-                    <td>{produccion.id_cultivo}</td>
-                    <td>{produccion.cantidad} kg</td>
-                    <td>{formatDate(produccion.fecha)}</td>
-                    <td>{getCalidadBadge(produccion.calidad)}</td>
+                {filteredRiegos.map(riego => (
+                  <tr key={riego.id_riego || Math.random()}>
+                    <td>{riego.id_riego || '-'}</td>
+                    <td>{riego.id_cultivo || '-'}</td>
+                    <td>{formatDate(riego.fecha)}</td>
+                    <td>{riego.cantidad_agua || '-'} L</td>
+                    <td>{riego.observaciones ? riego.observaciones.substring(0, 30) + (riego.observaciones.length > 30 ? '...' : '') : '-'}</td>
                     <td>
                       <Button 
                         variant="outline-danger" 
                         size="sm" 
                         className="me-1"
                         onClick={() => {
-                          setSelectedProduccion(produccion);
+                          setSelectedRiego(riego);
                           setShowDeleteModal(true);
                         }}
                       >
@@ -319,7 +317,7 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
                       <Button 
                         variant="outline-primary" 
                         size="sm"
-                        onClick={() => handleEditProduccion(produccion)}
+                        onClick={() => handleEditRiego(riego)}
                       >
                         <i className="fas fa-edit"></i>
                       </Button>
@@ -334,7 +332,7 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
         <div className="d-flex justify-content-between align-items-center mt-3">
           <div>
             <span className="text-muted me-3">
-              Mostrando {filteredProducciones.length} de {producciones?.length || 0} producciones
+              Mostrando {filteredRiegos.length} de {riegos?.length || 0} riegos
             </span>
             <Button 
               variant="outline-danger" 
@@ -342,15 +340,15 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
               onClick={() => setShowDeleteAllModal(true)}
             >
               <i className="fas fa-trash-alt me-1"></i>
-              Eliminar todas las producciones
+              Eliminar todos los riegos
             </Button>
           </div>
           <div>
-            <Button variant="warning" className="me-2" onClick={() => setShowCreateModal(true)}>
+            <Button variant="primary" className="me-2" onClick={() => setShowCreateModal(true)}>
               <i className="fas fa-plus me-1"></i>
-              Crear Producción
+              Crear Riego
             </Button>
-            <Button variant="warning" onClick={onRefresh}>
+            <Button variant="primary" onClick={onRefresh}>
               <i className="fas fa-sync-alt me-1"></i>
               Actualizar
             </Button>
@@ -358,14 +356,15 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
         </div>
       </Card.Body>
 
+      {/* Modal de confirmación para eliminar riego */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Confirmar eliminación</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedProduccion && (
+          {selectedRiego && (
             <p>
-              ¿Está seguro que desea eliminar la producción con ID <strong>{selectedProduccion.id_produccion}</strong> del cultivo con ID <strong>{selectedProduccion.id_cultivo}</strong>?
+              ¿Está seguro que desea eliminar el riego del cultivo <strong>{selectedRiego.id_cultivo}</strong> con ID <strong>{selectedRiego.id_riego}</strong>?
               <br />
               Esta acción no se puede deshacer.
             </p>
@@ -375,21 +374,22 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
           <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
             Cancelar
           </Button>
-          <Button variant="danger" onClick={handleDeleteProduccion}>
+          <Button variant="danger" onClick={handleDeleteRiego}>
             Eliminar
           </Button>
         </Modal.Footer>
       </Modal>
 
+      {/* Modal de confirmación para eliminar todos los riegos */}
       <Modal show={showDeleteAllModal} onHide={() => setShowDeleteAllModal(false)} centered>
         <Modal.Header closeButton className="bg-danger text-white">
-          <Modal.Title>¡Atención! Eliminar todas las producciones</Modal.Title>
+          <Modal.Title>¡Atención! Eliminar todos los riegos</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="text-center mb-3">
             <i className="fas fa-exclamation-triangle fa-3x text-warning"></i>
           </div>
-          <p className="fw-bold">Esta acción eliminará TODOS los registros de producción del sistema.</p>
+          <p className="fw-bold">Esta acción eliminará TODOS los riegos del sistema.</p>
           <p>Esta operación es irreversible y podría afectar gravemente el funcionamiento de la aplicación.</p>
           <p>¿Está completamente seguro de que desea continuar?</p>
         </Modal.Body>
@@ -397,47 +397,21 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
           <Button variant="secondary" onClick={() => setShowDeleteAllModal(false)}>
             Cancelar
           </Button>
-          <Button variant="danger" onClick={handleDeleteAllProducciones}>
+          <Button variant="danger" onClick={handleDeleteAllRiegos}>
             Sí, eliminar todos
           </Button>
         </Modal.Footer>
       </Modal>
 
+      {/* Modal de edición de riego */}
       <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Editar Producción</Modal.Title>
+          <Modal.Title>Editar Riego</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>ID Cultivo</Form.Label>
-              <Form.Control
-                type="number"
-                value={editForm.id_cultivo}
-                onChange={(e) => setEditForm({ ...editForm, id_cultivo: e.target.value })}
-                isInvalid={!!formErrors.id_cultivo}
-              />
-              <Form.Control.Feedback type="invalid">
-                {formErrors.id_cultivo}
-              </Form.Control.Feedback>
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Cantidad (kg)</Form.Label>
-              <Form.Control
-                type="number"
-                step="0.01"
-                value={editForm.cantidad}
-                onChange={(e) => setEditForm({ ...editForm, cantidad: e.target.value })}
-                isInvalid={!!formErrors.cantidad}
-              />
-              <Form.Control.Feedback type="invalid">
-                {formErrors.cantidad}
-              </Form.Control.Feedback>
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Fecha</Form.Label>
+              <Form.Label>Fecha de riego</Form.Label>
               <Form.Control
                 type="date"
                 value={editForm.fecha}
@@ -450,16 +424,28 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
             </Form.Group>
             
             <Form.Group className="mb-3">
-              <Form.Label>Calidad</Form.Label>
-              <Form.Select
-                value={editForm.calidad}
-                onChange={(e) => setEditForm({ ...editForm, calidad: e.target.value })}
-              >
-                <option value="">No especificada</option>
-                <option value="Alta">Alta</option>
-                <option value="Media">Media</option>
-                <option value="Baja">Baja</option>
-              </Form.Select>
+              <Form.Label>Cantidad de agua (Litros)</Form.Label>
+              <Form.Control
+                type="number"
+                min="0"
+                step="0.01"
+                value={editForm.cantidad_agua}
+                onChange={(e) => setEditForm({ ...editForm, cantidad_agua: e.target.value })}
+                isInvalid={!!formErrors.cantidad_agua}
+              />
+              <Form.Control.Feedback type="invalid">
+                {formErrors.cantidad_agua}
+              </Form.Control.Feedback>
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Observaciones</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={editForm.observaciones}
+                onChange={(e) => setEditForm({ ...editForm, observaciones: e.target.value })}
+              />
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -467,22 +453,23 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
           <Button variant="secondary" onClick={() => setShowEditModal(false)}>
             Cancelar
           </Button>
-          <Button variant="primary" onClick={handleUpdateProduccion}>
+          <Button variant="primary" onClick={handleUpdateRiego}>
             Guardar cambios
           </Button>
         </Modal.Footer>
       </Modal>
 
+      {/* Modal de creación de riego */}
       <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Crear Producción</Modal.Title>
+          <Modal.Title>Crear Riego</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>ID Cultivo</Form.Label>
               <Form.Control
-                type="number"
+                type="text"
                 value={createForm.id_cultivo}
                 onChange={(e) => setCreateForm({ ...createForm, id_cultivo: e.target.value })}
                 isInvalid={!!createFormErrors.id_cultivo}
@@ -493,21 +480,7 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
             </Form.Group>
             
             <Form.Group className="mb-3">
-              <Form.Label>Cantidad (kg)</Form.Label>
-              <Form.Control
-                type="number"
-                step="0.01"
-                value={createForm.cantidad}
-                onChange={(e) => setCreateForm({ ...createForm, cantidad: e.target.value })}
-                isInvalid={!!createFormErrors.cantidad}
-              />
-              <Form.Control.Feedback type="invalid">
-                {createFormErrors.cantidad}
-              </Form.Control.Feedback>
-            </Form.Group>
-            
-            <Form.Group className="mb-3">
-              <Form.Label>Fecha</Form.Label>
+              <Form.Label>Fecha de riego</Form.Label>
               <Form.Control
                 type="date"
                 value={createForm.fecha}
@@ -520,16 +493,28 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
             </Form.Group>
             
             <Form.Group className="mb-3">
-              <Form.Label>Calidad</Form.Label>
-              <Form.Select
-                value={createForm.calidad}
-                onChange={(e) => setCreateForm({ ...createForm, calidad: e.target.value })}
-              >
-                <option value="">No especificada</option>
-                <option value="Alta">Alta</option>
-                <option value="Media">Media</option>
-                <option value="Baja">Baja</option>
-              </Form.Select>
+              <Form.Label>Cantidad de agua (Litros)</Form.Label>
+              <Form.Control
+                type="number"
+                min="0"
+                step="0.01"
+                value={createForm.cantidad_agua}
+                onChange={(e) => setCreateForm({ ...createForm, cantidad_agua: e.target.value })}
+                isInvalid={!!createFormErrors.cantidad_agua}
+              />
+              <Form.Control.Feedback type="invalid">
+                {createFormErrors.cantidad_agua}
+              </Form.Control.Feedback>
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Observaciones</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={createForm.observaciones}
+                onChange={(e) => setCreateForm({ ...createForm, observaciones: e.target.value })}
+              />
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -537,8 +522,8 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
           <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
             Cancelar
           </Button>
-          <Button variant="warning" onClick={handleCreateProduccion}>
-            Crear Producción
+          <Button variant="primary" onClick={handleCreateRiego}>
+            Crear Riego
           </Button>
         </Modal.Footer>
       </Modal>
@@ -546,4 +531,4 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
   );
 };
 
-export default ProduccionList;
+export default RiegosList;

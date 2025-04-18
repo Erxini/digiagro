@@ -203,12 +203,12 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
 
   return (
     <Card className="mb-4 shadow-sm">
-      <Card.Header className="d-flex justify-content-between align-items-center bg-light">
+      <Card.Header className="d-flex justify-content-between align-items-center bg-success text-white">
         <h5 className="mb-0">
           <i className="fas fa-seedling me-2"></i>
           Lista de Cultivos
         </h5>
-        <Button variant="outline-secondary" size="sm" onClick={onClose}>
+        <Button variant="outline-light" size="sm" onClick={onClose}>
           <i className="fas fa-times me-1"></i>
           Cerrar
         </Button>
@@ -272,7 +272,7 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
               <thead className="table-light">
                 <tr>
                   <th style={{cursor: 'pointer'}} onClick={() => handleSort('id_cultivo')}>
-                    ID {renderSortIndicator('id_cultivo')}
+                    ID_cultivo {renderSortIndicator('id_cultivo')}
                   </th>
                   <th style={{cursor: 'pointer'}} onClick={() => handleSort('id_usuario')}>
                     Usuario {renderSortIndicator('id_usuario')}
