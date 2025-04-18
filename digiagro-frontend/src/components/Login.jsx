@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import './Login.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Modal, Button } from 'react-bootstrap';
 import { useFormValidation } from '../hooks/useFormValidation';
 import { useAuth } from '../hooks/useAuth';
 
 function Login() {
   const [hovered, setHovered] = useState('register'); // Estado inicial en 'register'
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 800);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { register, login, authError } = useAuth();
   
   // Función para actualizar el estado isMobile cuando cambia el tamaño de la pantalla
@@ -100,7 +102,7 @@ function Login() {
   );
 
   useEffect(() => {
-    console.log('Estado hovered actualizado:', hovered);
+    //console.log('Estado hovered actualizado:', hovered);
   }, [hovered]);
 
   // Función para manejar el registro
@@ -111,6 +113,7 @@ function Login() {
       if (success) {
         resetRegisterForm();
         setHovered('login'); // Cambiar a login después de registro exitoso
+        setShowSuccessModal(true); // Mostrar el modal de éxito
         console.log('Usuario registrado con éxito');
       }
     } catch (error) {
@@ -137,6 +140,11 @@ function Login() {
     } else {
       return hovered === 'login' ? 'slide-left' : hovered === 'register' ? 'slide-right' : '';
     }
+  };
+
+  // Función para cerrar el modal
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
   };
 
   return (
@@ -283,6 +291,35 @@ function Login() {
           <div className={`overlay ${getOverlayClass()}`}></div>
         </div>
       </div>
+
+      {/* Modal de registro exitoso */}
+      <Modal 
+        show={showSuccessModal} 
+        onHide={handleCloseModal}
+        centered
+        backdrop="static"
+        keyboard={false}
+      >
+        <Modal.Header style={{ backgroundColor: '#4CAF50', color: 'white' }}>
+          <Modal.Title>Registro Exitoso</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="text-center">
+            <i className="fas fa-check-circle fa-3x mb-3" style={{ color: '#4CAF50' }}></i>
+          </p>
+          <p className="text-center">
+            ¡Usuario registrado correctamente!
+          </p>
+          <p className="text-center">
+            Ahora puedes iniciar sesión con tus credenciales.
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="success" onClick={handleCloseModal}>
+            Aceptar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

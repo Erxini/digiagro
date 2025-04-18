@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Card, Form } from 'react-bootstrap';
+import { Container, Row, Col, Button, Card, Form, Badge, Alert } from 'react-bootstrap';
 import { useApi } from '../hooks/useApi';
 import { useAuth } from '../hooks/useAuth';
+import UsuariosList from './UsuariosList';
 
 const Admin = () => {
   const { user } = useAuth();
@@ -9,8 +10,6 @@ const Admin = () => {
   const [usersData, setUsersData] = useState(null);
   const [cultivosData, setCultivosData] = useState(null);
   const [produccionData, setProduccionData] = useState(null);
-  const [searchUserName, setSearchUserName] = useState('');
-  const [userId, setUserId] = useState('');
   const [cultivoNombre, setCultivoNombre] = useState('');
   const [cultivoId, setCultivoId] = useState('');
   const [produccionCultivo, setProduccionCultivo] = useState('');
@@ -19,6 +18,10 @@ const Admin = () => {
   const [produccionId, setProduccionId] = useState('');
   const [activeSection, setActiveSection] = useState('usuarios');
   const [adminName, setAdminName] = useState('');
+  const [lastUpdate, setLastUpdate] = useState(new Date().toLocaleString());
+  const [isLoading, setIsLoading] = useState(false);
+  const [alertMessage, setAlertMessage] = useState(null);
+  const [alertType, setAlertType] = useState('success');
 
   // Hook para realizar peticiones a la API
   const { get, del, put } = useApi();
@@ -42,67 +45,45 @@ const Admin = () => {
     }
   }, [user]);
 
+  // Mostrar mensaje de alerta y ocultarlo después de 5 segundos
+  const showAlert = (message, type = 'success') => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setTimeout(() => {
+      setAlertMessage(null);
+    }, 5000);
+  };
+
+  // Obtener estadísticas iniciales
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setIsLoading(true);
+        await listarUsuarios();
+        await obtenerTodosCultivos();
+        await obtenerTodasProducciones();
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error al cargar datos iniciales:', error);
+        setIsLoading(false);
+      }
+    };
+    
+    fetchInitialData();
+  }, []);
+
   // Funciones para gestionar usuarios
   const listarUsuarios = async () => {
     try {
-      const response = await get('/api/usuarios');
+      setIsLoading(true);
+      const response = await get('usuarios');
       setUsersData(response);
+      setLastUpdate(new Date().toLocaleString());
+      setIsLoading(false);
     } catch (error) {
       console.error('Error al listar usuarios:', error);
-      alert('Error al listar usuarios');
-    }
-  };
-
-  const buscarUsuarioPorNombre = async () => {
-    if (!searchUserName) {
-      alert('Por favor, introduce un nombre de usuario');
-      return;
-    }
-    try {
-      const response = await get(`/api/usuarios/nombre/${searchUserName}`);
-      setUsersData(response);
-    } catch (error) {
-      console.error('Error al buscar usuario:', error);
-      alert('Error al buscar usuario');
-    }
-  };
-
-  const editarUsuario = async () => {
-    if (!userId) {
-      alert('Por favor, introduce un ID de usuario');
-      return;
-    }
-    // Esta función redirigirá a un formulario de edición o mostrará un modal
-    alert('Función para editar usuario con ID: ' + userId);
-  };
-
-  const eliminarUsuario = async () => {
-    if (!userId) {
-      alert('Por favor, introduce un ID de usuario');
-      return;
-    }
-    if (window.confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
-      try {
-        await del(`/api/usuarios/${userId}`);
-        alert('Usuario eliminado correctamente');
-        listarUsuarios(); // Actualizar la lista después de eliminar
-      } catch (error) {
-        console.error('Error al eliminar usuario:', error);
-        alert('Error al eliminar usuario');
-      }
-    }
-  };
-
-  const eliminarTodosUsuarios = async () => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar TODOS los usuarios? Esta acción no se puede deshacer.')) {
-      try {
-        await del('/api/usuarios');
-        alert('Todos los usuarios han sido eliminados correctamente');
-        setUsersData([]); // Limpiar la lista de usuarios
-      } catch (error) {
-        console.error('Error al eliminar todos los usuarios:', error);
-        alert('Error al eliminar todos los usuarios');
-      }
+      showAlert('Error al listar usuarios', 'danger');
+      setIsLoading(false);
     }
   };
 
@@ -123,11 +104,12 @@ const Admin = () => {
 
   const obtenerTodosCultivos = async () => {
     try {
-      const response = await get('/api/cultivos');
+      const response = await get('cultivos');
       setCultivosData(response);
+      setLastUpdate(new Date().toLocaleString());
     } catch (error) {
       console.error('Error al obtener cultivos:', error);
-      alert('Error al obtener cultivos');
+      showAlert('Error al obtener cultivos', 'danger');
     }
   };
 
@@ -175,11 +157,12 @@ const Admin = () => {
 
   const obtenerTodasProducciones = async () => {
     try {
-      const response = await get('/api/produccion');
+      const response = await get('produccion');
       setProduccionData(response);
+      setLastUpdate(new Date().toLocaleString());
     } catch (error) {
       console.error('Error al obtener producciones:', error);
-      alert('Error al obtener producciones');
+      showAlert('Error al obtener producciones', 'danger');
     }
   };
 
@@ -213,78 +196,60 @@ const Admin = () => {
     }
   };
 
+  // Renderizado de las cards de estadísticas
+  const renderStats = () => {
+    return (
+      <Row className="mb-4">
+        <Col md={4}>
+          <Card className="text-center mb-3 h-100" bg="accent-brown" text="light">
+            <Card.Body>
+              <Card.Title><i className="fas fa-users mr-2"></i> Usuarios</Card.Title>
+              <h2>{usersData ? usersData.length : 0}</h2>
+              <Card.Text>Total de usuarios registrados</Card.Text>
+            </Card.Body>
+            <Card.Footer>
+              <small>Última actualización: {lastUpdate}</small>
+            </Card.Footer>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="text-center mb-3 h-100" bg="success" text="white">
+            <Card.Body>
+              <Card.Title><i className="fas fa-seedling mr-2"></i> Cultivos</Card.Title>
+              <h2>{cultivosData ? cultivosData.length : 0}</h2>
+              <Card.Text>Total de cultivos registrados</Card.Text>
+            </Card.Body>
+            <Card.Footer>
+              <small>Última actualización: {lastUpdate}</small>
+            </Card.Footer>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="text-center mb-3 h-100" bg="warning" text="dark">
+            <Card.Body>
+              <Card.Title><i className="fas fa-chart-line mr-2"></i> Producción</Card.Title>
+              <h2>{produccionData ? produccionData.length : 0}</h2>
+              <Card.Text>Total de registros de producción</Card.Text>
+            </Card.Body>
+            <Card.Footer>
+              <small>Última actualización: {lastUpdate}</small>
+            </Card.Footer>
+          </Card>
+        </Col>
+      </Row>
+    );
+  };
+
   // Renderizado condicional según la sección activa
   const renderContent = () => {
     switch (activeSection) {
       case 'usuarios':
         return (
-          <Card className="mb-4">
-            <Card.Header as="h5">Gestión de Usuarios</Card.Header>
-            <Card.Body>
-              <Row className="mb-3">
-                <Col>
-                  <Button variant="primary" onClick={listarUsuarios} className="w-100 mb-2">
-                    Listar todos los usuarios
-                  </Button>
-                </Col>
-              </Row>
-              <Row className="mb-3">
-                <Col md={8}>
-                  <Form.Group>
-                    <Form.Control
-                      type="text"
-                      placeholder="Nombre de usuario"
-                      value={searchUserName}
-                      onChange={(e) => setSearchUserName(e.target.value)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={4}>
-                  <Button variant="info" onClick={buscarUsuarioPorNombre} className="w-100">
-                    Buscar por nombre
-                  </Button>
-                </Col>
-              </Row>
-              <Row className="mb-3">
-                <Col md={8}>
-                  <Form.Group>
-                    <Form.Control
-                      type="text"
-                      placeholder="ID de usuario"
-                      value={userId}
-                      onChange={(e) => setUserId(e.target.value)}
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={4}>
-                  <div className="d-flex gap-2">
-                    <Button variant="warning" onClick={editarUsuario} className="flex-grow-1">
-                      Editar
-                    </Button>
-                    <Button variant="danger" onClick={eliminarUsuario} className="flex-grow-1">
-                      Eliminar
-                    </Button>
-                  </div>
-                </Col>
-              </Row>
-              <Row>
-                <Col>
-                  <Button variant="danger" onClick={eliminarTodosUsuarios} className="w-100">
-                    Eliminar todos los usuarios
-                  </Button>
-                </Col>
-              </Row>
-              
-              {usersData && (
-                <div className="mt-4">
-                  <h6>Resultados:</h6>
-                  <pre className="bg-light p-3 rounded" style={{ paddingLeft: '300px', paddingRight: '300px' }}>
-                    {JSON.stringify(usersData, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
+          <UsuariosList 
+            usuarios={usersData} 
+            onClose={() => setActiveSection(null)} 
+            onRefresh={listarUsuarios}
+          />
         );
       
       case 'cultivos':
@@ -304,21 +269,21 @@ const Admin = () => {
                   </Form.Group>
                 </Col>
                 <Col md={4}>
-                  <Button variant="info" onClick={obtenerCultivoPorNombre} className="w-100">
+                  <Button variant="success" onClick={obtenerCultivoPorNombre} className="w-100">
                     Buscar por nombre
                   </Button>
                 </Col>
               </Row>
               <Row className="mb-3">
                 <Col>
-                  <Button variant="primary" onClick={obtenerTodosCultivos} className="w-100 mb-2">
+                  <Button variant="success" onClick={obtenerTodosCultivos} className="w-100 mb-2">
                     Obtener todos los cultivos
                   </Button>
                 </Col>
               </Row>
               <Row>
                 <Col>
-                  <Button variant="danger" onClick={eliminarTodosCultivos} className="w-100">
+                  <Button variant="success" onClick={eliminarTodosCultivos} className="w-100">
                     Eliminar todos los cultivos
                   </Button>
                 </Col>
@@ -363,7 +328,7 @@ const Admin = () => {
                   </Form.Group>
                 </Col>
                 <Col md={4}>
-                  <Button variant="info" onClick={obtenerProduccionPorCultivoYCantidad} className="w-100">
+                  <Button variant="warning" onClick={obtenerProduccionPorCultivoYCantidad} className="w-100">
                     Buscar por cultivo y cantidad
                   </Button>
                 </Col>
@@ -390,14 +355,14 @@ const Admin = () => {
                   </Form.Group>
                 </Col>
                 <Col md={4}>
-                  <Button variant="info" onClick={obtenerProduccionPorCultivoYCalidad} className="w-100">
+                  <Button variant="warning" onClick={obtenerProduccionPorCultivoYCalidad} className="w-100">
                     Buscar por cultivo y calidad
                   </Button>
                 </Col>
               </Row>
               <Row className="mb-3">
                 <Col>
-                  <Button variant="primary" onClick={obtenerTodasProducciones} className="w-100 mb-2">
+                  <Button variant="warning" onClick={obtenerTodasProducciones} className="w-100 mb-2">
                     Obtener todas las producciones
                   </Button>
                 </Col>
@@ -414,14 +379,14 @@ const Admin = () => {
                   </Form.Group>
                 </Col>
                 <Col md={4}>
-                  <Button variant="danger" onClick={eliminarProduccion} className="w-100">
+                  <Button variant="warning" onClick={eliminarProduccion} className="w-100">
                     Eliminar producción
                   </Button>
                 </Col>
               </Row>
               <Row>
                 <Col>
-                  <Button variant="danger" onClick={eliminarTodasProducciones} className="w-100">
+                  <Button variant="warning" onClick={eliminarTodasProducciones} className="w-100">
                     Eliminar todas las producciones
                   </Button>
                 </Col>
@@ -445,41 +410,85 @@ const Admin = () => {
   };
 
   return (
-    <Container style={{ marginTop: '2rem', marginBottom: '2rem', paddingLeft: '300px', paddingRight: '300px' }}>
-      <h1 className="text-center mb-4">Panel de Administración</h1>
-      <h4 className="text-center mb-4 text-success">Bienvenido/a: {adminName || 'Administrador'}</h4>
-      
-      <Row className="mb-4">
-        <Col md={4}>
-          <Button 
-            variant={activeSection === 'usuarios' ? 'primary' : 'outline-primary'} 
-            className="w-100"
-            onClick={() => setActiveSection('usuarios')}
-          >
-            Gestión de Usuarios
-          </Button>
-        </Col>
-        <Col md={4}>
-          <Button 
-            variant={activeSection === 'cultivos' ? 'primary' : 'outline-primary'} 
-            className="w-100"
-            onClick={() => setActiveSection('cultivos')}
-          >
-            Gestión de Cultivos
-          </Button>
-        </Col>
-        <Col md={4}>
-          <Button 
-            variant={activeSection === 'produccion' ? 'primary' : 'outline-primary'} 
-            className="w-100"
-            onClick={() => setActiveSection('produccion')}
-          >
-            Gestión de Producción
-          </Button>
-        </Col>
-      </Row>
-      
-      {renderContent()}
+    <Container fluid className="px-4" style={{ marginTop: '130px', marginBottom: '2rem' }}>
+      <Card className="shadow-sm mb-4">
+        <Card.Body>
+          <Row>
+            <Col>
+              <h1 className="mb-0">Panel de Administración</h1>
+              <p className="text-muted">Gestión completa de DigiAgro</p>
+            </Col>
+            <Col className="text-end">
+              <h4 className="text-success">
+                <i className="fas fa-user-shield me-2"></i>
+                Bienvenido/a: {adminName || 'Administrador'}
+              </h4>
+              <p className="text-muted">
+                <i className="fas fa-calendar me-2"></i>
+                {new Date().toLocaleDateString()}
+              </p>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
+      {alertMessage && (
+        <Alert variant={alertType} dismissible onClose={() => setAlertMessage(null)}>
+          {alertMessage}
+        </Alert>
+      )}
+
+      {isLoading ? (
+        <div className="text-center p-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+          <p className="mt-3">Cargando datos, por favor espere...</p>
+        </div>
+      ) : (
+        <>
+          {renderStats()}
+          
+          <Card className="shadow-sm mb-4">
+            <Card.Body>
+              <Row className="mb-4">
+                <Col md={4}>
+                  <Button 
+                    variant={activeSection === 'usuarios' ? 'accent-brown' : 'outline-accent-brown'} 
+                    className={`w-100 ${activeSection === 'usuarios' ? 'text-light' : 'text-accent-brown'}`}
+                    onClick={() => setActiveSection('usuarios')}
+                  >
+                    <i className="fas fa-users me-2"></i>
+                    Gestión de Usuarios
+                  </Button>
+                </Col>
+                <Col md={4}>
+                  <Button 
+                    variant={activeSection === 'cultivos' ? 'success' : 'outline-success'} 
+                    className="w-100"
+                    onClick={() => setActiveSection('cultivos')}
+                  >
+                    <i className="fas fa-seedling me-2"></i>
+                    Gestión de Cultivos
+                  </Button>
+                </Col>
+                <Col md={4}>
+                  <Button 
+                    variant={activeSection === 'produccion' ? 'warning' : 'outline-warning'} 
+                    className="w-100"
+                    onClick={() => setActiveSection('produccion')}
+                  >
+                    <i className="fas fa-chart-line me-2"></i>
+                    Gestión de Producción
+                  </Button>
+                </Col>
+              </Row>
+              
+              {renderContent()}
+            </Card.Body>
+          </Card>
+        </>
+      )}
     </Container>
   );
 };

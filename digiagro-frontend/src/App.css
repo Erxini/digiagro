@@ -5,6 +5,102 @@
   text-align: center;
 }
 
+/* Variables de colores */
+:root {
+  --primary-green: #4CAF50;
+  --secondary-gold: #DAA520;
+  --accent-brown: #A0522D;
+  --background-white: #FFFFFF;
+  --text-dark: #333333;
+  --text-light: #FFFFFF;
+  --danger-red: #DC3545;
+  --warning-yellow: #FFC107;
+  --info-blue: #17A2B8;
+  --success-green: #28A745;
+  --font-family: 'Sen', sans-serif;
+}
+
+/* Estilos globales */
+body {
+  font-family: var(--font-family);
+  color: var(--text-dark);
+  background-color: var(--background-white);
+}
+
+/* Clases de utilidad para colores - Aumentar especificidad */
+.bg-primary-green { 
+  background-color: var(--primary-green) !important; 
+}
+.bg-secondary-gold { 
+  background-color: var(--secondary-gold) !important; 
+}
+.bg-accent-brown { 
+  background-color: var(--accent-brown) !important; 
+}
+
+.text-primary-green { 
+  color: var(--primary-green) !important; 
+}
+.text-secondary-gold { 
+  color: var(--secondary-gold) !important; 
+}
+.text-accent-brown { 
+  color: var(--accent-brown) !important; 
+}
+
+/* Clases para botones personalizados */
+.btn-primary-green {
+  background-color: var(--primary-green) !important;
+  color: var(--text-light) !important;
+}
+.btn-primary-green:hover {
+  background-color: #3d8b40 !important; /* Equivalente a darken 10% */
+}
+
+.btn-secondary-gold {
+  background-color: var(--secondary-gold) !important;
+  color: var(--accent-brown) !important;
+}
+.btn-secondary-gold:hover {
+  background-color: #b5881b !important; /* Equivalente a darken 10% */
+}
+
+.btn-accent-brown {
+  background-color: var(--accent-brown) !important;
+  color: var(--text-light) !important;
+}
+.btn-accent-brown:hover {
+  background-color: #7f4023 !important; /* Equivalente a darken 10% */
+}
+
+/* Botones outline personalizados */
+.btn-outline-accent-brown {
+  color: var(--accent-brown) !important;
+  border-color: var(--accent-brown) !important;
+  background-color: transparent !important;
+}
+
+.btn-outline-accent-brown:hover {
+  color: var(--text-light) !important;
+  background-color: var(--accent-brown) !important;
+}
+
+/* Sobrescribir estilos de Bootstrap para los enlaces de navegación */
+.nav-link.btn.bg-secondary-gold {
+  background-color: var(--secondary-gold) !important;
+  color: var(--accent-brown) !important;
+}
+
+.nav-link.btn.bg-secondary-gold:hover {
+  background-color: #b5881b !important; /* Equivalente a darken 10% */
+}
+
+/* Asegurar que el fondo verde del header se aplique correctamente */
+header.bg-primary-green {
+  background-color: var(--primary-green) !important;
+}
+
+/* Resto de estilos originales */
 .logo {
   height: 6em;
   padding: 1.5em;

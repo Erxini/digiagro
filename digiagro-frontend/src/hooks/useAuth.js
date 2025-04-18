@@ -43,6 +43,7 @@ export const useAuth = () => {
     setAuthError(null);
     
     try {
+      console.log('Enviando credenciales al servidor:', credentials);
       const response = await post('usuarios/login', credentials);
       
       if (response && response.usuario && response.token) {
@@ -72,9 +73,11 @@ export const useAuth = () => {
         }
         
         return true;
+      } else {
+        console.error('Respuesta incompleta del servidor:', response);
+        setAuthError('Respuesta incompleta del servidor');
+        return false;
       }
-      
-      return false;
     } catch (err) {
       console.error('Error completo al iniciar sesión:', err);
       setAuthError(error || 'Error al iniciar sesión');

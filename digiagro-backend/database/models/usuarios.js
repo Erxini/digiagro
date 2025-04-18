@@ -4,7 +4,7 @@ const { Model, DataTypes } = require('sequelize');
 
 class Usuario extends Model { }
 
-//usuario: id_suario, nombre, email, password, rol
+//usuario: id_suario, nombre, email, password, rol, telefono
 
 Usuario.init({
   id_usuario: {
@@ -57,6 +57,20 @@ Usuario.init({
             args: [1, 200],
             msg: "La contraseña de usuario debe tener entre 1 y 100 caracteres"
         },
+    }
+  },
+  telefono: {
+    type: DataTypes.STRING(15),
+    allowNull: true,
+    validate: {
+      is: {
+        args: /^[0-9+\s-]+$/,
+        msg: "El teléfono solo puede contener números, espacios, + y -"
+      },
+      len: {
+        args: [0, 15],
+        msg: "El teléfono debe tener máximo 15 caracteres"
+      }
     }
   },
   rol: {

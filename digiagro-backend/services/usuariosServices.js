@@ -95,8 +95,24 @@ const getLogin = async (email, password) => {
       throw new Error("Credenciales inválidas");
     }
     
-    // Verificar la contraseña con bcrypt
-    const passwordMatch = await bcrypt.compare(password, usuario.password);
+    // Verificación de contraseña temporal - Comprobación directa para los usuarios existentes
+    // Esto es para compatibilidad con contraseñas almacenadas en texto plano
+    let passwordMatch = false;
+    
+    // Primero intentamos comparación directa (para usuarios con contraseñas en texto plano)
+    if (usuario.password === password) {
+      passwordMatch = true;
+      console.log("Autenticación exitosa mediante comparación directa de contraseña");
+    } else {
+      // Si no coincide, intentamos con bcrypt (para usuarios con contraseñas hasheadas)
+      try {
+        passwordMatch = await bcrypt.compare(password, usuario.password);
+        console.log("Autenticación exitosa mediante bcrypt");
+      } catch (err) {
+        console.log("Error al comparar con bcrypt, posiblemente contraseña no hasheada:", err.message);
+        passwordMatch = false;
+      }
+    }
     
     if (!passwordMatch) {
       throw new Error("Credenciales inválidas");
@@ -105,7 +121,7 @@ const getLogin = async (email, password) => {
     // Generar token JWT
     const token = jwt.sign(
       { 
-        userId: usuario.id,
+        userId: usuario.id_usuario,
         email: usuario.email,
         rol: usuario.rol 
       }, 
@@ -116,9 +132,10 @@ const getLogin = async (email, password) => {
     // Devolver usuario y token
     return {
       usuario: {
-        id: usuario.id,
+        id: usuario.id_usuario,
         nombre: usuario.nombre,
         email: usuario.email,
+        telefono: usuario.telefono || "",
         rol: usuario.rol
       },
       token

@@ -10,7 +10,6 @@ require('dotenv').config();
 const sequelize = require("./database/db.js");
 require("./database/associations.js")
 
-// Conversión a json datos que nos envían para post, put, patch...
 app.use(cors({origin: '*'})); //OJo cambiar en producción!!
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
