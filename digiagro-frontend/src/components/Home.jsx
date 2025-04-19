@@ -24,8 +24,8 @@ function Home() {
         <div className="row align-items-center mb-5">
           <div className="col-md-6">
             <h2>Eficiencia</h2>
-            <p>
-              En Digiagro, nos dedicamos a la digitalización agrícola, ayudando a las pequeñas y medianas empresas a optimizar sus procesos y mejorar su productividad. Nuestra plataforma ofrece herramientas avanzadas para la gestión de cultivos, seguimiento de datos meteorológicos y dosificación hídrica.
+            <p style={{ textAlign: 'justify' }}>
+              En Digiagro, nos dedicamos a la digitalización agrícola, ayudando a las pequeñas y medianas empresas a optimizar sus procesos y mejorar su productividad. Nuestra plataforma ofrece herramientas avanzadas para la gestión de cultivos, seguimiento de datos meteorológicos, dosificación hídrica, muestreo de suelos o control de producciones.
             </p>
           </div>
           <div className="col-md-6">
@@ -37,8 +37,8 @@ function Home() {
         <div className="row align-items-center">
           <div className="col-md-6 order-md-2">
             <h2>Digitalización</h2>
-            <p>
-              En Digiagro, entendemos la importancia de la digitalización en el sector agrícola. Nuestra plataforma está diseñada para facilitar la adopción de tecnologías avanzadas, permitiendo a los agricultores tomar decisiones basadas en datos.
+            <p style={{ textAlign: 'justify' }}>
+              En Digiagro, entendemos la importancia de la digitalización en el sector agrícola. Nuestra plataforma está diseñada para facilitar la adopción de tecnologías avanzadas, permitiendo a los agricultores tomar decisiones basadas en datos. Cuenta además con herramientas de previsión meteorológica y recomendaciones sobre plantación, abonado y recolección de cultivos.
             </p>
           </div>
           <div className="col-md-6 order-md-1 mb-4">
@@ -50,8 +50,8 @@ function Home() {
         <div className="row align-items-center">
           <div className="col-md-6">
             <h2>Ecología</h2>
-            <p>
-              En Digiagro, nos preocupamos por el medio ambiente. Nuestra plataforma promueve prácticas agrícolas sostenibles, ayudando a los agricultores a reducir su huella de carbono y a utilizar recursos de manera más eficiente.
+            <p style={{ textAlign: 'justify' }}>
+              En Digiagro, nos preocupamos por el medio ambiente. Nuestra plataforma promueve prácticas agrícolas sostenibles, ayudando a los agricultores a reducir su huella de carbono y a utilizar recursos de manera más eficiente. Mejoramos el consumo hídrico en las explotaciones agrícolas, optimizando el uso del agua y reduciendo el desperdicio.
             </p>
           </div>
           <div className="col-md-6 mt-4">
