@@ -44,13 +44,13 @@ function Header() {
             </a>
           </li>
           <li className="nav-item">
-            <a
+            <Link
               className="nav-link btn me-2 bg-secondary-gold text-accent-brown"
               style={{ padding: '5px 10px', fontSize: '20px' }}
-              href="#galeria"
+              to="/meteorologia"
             >
               Meteorología
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
             <Link
