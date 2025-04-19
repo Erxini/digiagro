@@ -50,11 +50,11 @@ function Login() {
     }
     
     // Validar teléfono
-    const telefonoRegex = /^[0-9]{10}$/;
+    const telefonoRegex = /^[0-9]{9}$/;
     if (!values.telefono?.trim()) {
       errors.telefono = 'El teléfono es obligatorio';
     } else if (!telefonoRegex.test(values.telefono.trim())) {
-      errors.telefono = 'Ingrese un teléfono válido de 10 dígitos';
+      errors.telefono = 'Ingrese un teléfono válido de 9 dígitos';
     }
     
     // Validar rol

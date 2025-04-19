@@ -26,13 +26,13 @@ function Header() {
       <nav>
         <ul className="nav">
           <li className="nav-item">
-            <a
+            <Link
               className="nav-link btn me-2 bg-secondary-gold text-accent-brown"
               style={{ padding: '5px 10px', fontSize: '20px' }}
-              href="#consejos"
+              to="/calendario"
             >
               Calendario
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
             <a

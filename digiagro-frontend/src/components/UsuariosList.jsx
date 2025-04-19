@@ -200,12 +200,12 @@ const UsuariosList = ({ usuarios, onClose, onRefresh }) => {
 
   return (
     <Card className="mb-4 shadow-sm">
-      <Card.Header className="d-flex justify-content-between align-items-center bg-light">
+      <Card.Header className="d-flex justify-content-between align-items-center bg-accent-brown text-white">
         <h5 className="mb-0">
           <i className="fas fa-users me-2"></i>
           Lista de Usuarios
         </h5>
-        <Button variant="outline-secondary" size="sm" onClick={onClose}>
+        <Button variant="outline-light" size="sm" onClick={onClose}>
           <i className="fas fa-times me-1"></i>
           Cerrar
         </Button>
@@ -268,7 +268,7 @@ const UsuariosList = ({ usuarios, onClose, onRefresh }) => {
               <thead className="table-light">
                 <tr>
                   <th style={{cursor: 'pointer'}} onClick={() => handleSort('id_usuario')}>
-                    ID {renderSortIndicator('id_usuario')}
+                    ID_usuario {renderSortIndicator('id_usuario')}
                   </th>
                   <th style={{cursor: 'pointer'}} onClick={() => handleSort('nombre')}>
                     Nombre {renderSortIndicator('nombre')}

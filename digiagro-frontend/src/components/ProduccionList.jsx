@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Form, InputGroup, Row, Col, Modal } from 'react-bootstrap';
 import { useApi } from '../hooks/useApi';
 
+// Constantes para evitar la traducción automática
+const CALIDAD_ALTO = "Alto/a";
+const CALIDAD_MEDIO = "Medio/a";
+const CALIDAD_BAJO = "Bajo/a";
+
 const ProduccionList = ({ producciones, onClose, onRefresh }) => {
   const [sortedProducciones, setSortedProducciones] = useState([]);
   const [sortField, setSortField] = useState('id_produccion');
@@ -89,17 +94,24 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
   const getCalidadBadge = (calidad) => {
     if (!calidad) return <span className="badge bg-secondary-subtle text-dark">No especificada</span>;
     
-    // Evitamos problemas de traducción usando camelCase y asegurándonos de devolver valores exactos
-    switch (calidad.toLowerCase()) {
-      case 'alta':
-        return <span className="badge bg-success-subtle text-dark">Alta</span>;
-      case 'media':
-        return <span className="badge bg-warning-subtle text-dark">Media</span>; // Aseguramos que solo muestra "Media"
-      case 'baja':
-        return <span className="badge bg-danger-subtle text-dark">Baja</span>;
-      default:
-        return <span className="badge bg-info-subtle text-dark">{calidad}</span>;
+    // Normalizamos el valor de calidad a minúsculas para una comparación insensible a mayúsculas/minúsculas
+    const calidadLower = typeof calidad === 'string' ? calidad.toLowerCase() : '';
+    
+    // Verificamos por partes del texto para evitar problemas de traducción
+    if (calidadLower === 'alto' || calidadLower === 'alta') {
+      return <span className="badge bg-success-subtle text-dark">{CALIDAD_ALTO}</span>;
     }
+    
+    if (calidadLower === 'medio' || calidadLower === 'media' || calidadLower.includes('medi')) {
+      // Usamos un span con el atributo translate="no" y cambiamos al masculino que no es traducido
+      return <span className="badge bg-warning-subtle text-dark" translate="no">{CALIDAD_MEDIO}</span>;
+    }
+    
+    if (calidadLower === 'bajo' || calidadLower === 'baja') {
+      return <span className="badge bg-danger-subtle text-dark">{CALIDAD_BAJO}</span>;
+    }
+    
+    return <span className="badge bg-info-subtle text-dark">{calidad}</span>;
   };
 
   const handleDeleteProduccion = async () => {
@@ -456,9 +468,9 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
                 onChange={(e) => setEditForm({ ...editForm, calidad: e.target.value })}
               >
                 <option value="">No especificada</option>
-                <option value="Alta">Alta</option>
-                <option value="Media">Media</option>
-                <option value="Baja">Baja</option>
+                <option value={CALIDAD_ALTO}>{CALIDAD_ALTO}</option>
+                <option value={CALIDAD_MEDIO} translate="no">{CALIDAD_MEDIO}</option>
+                <option value={CALIDAD_BAJO}>{CALIDAD_BAJO}</option>
               </Form.Select>
             </Form.Group>
           </Form>
@@ -526,9 +538,9 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
                 onChange={(e) => setCreateForm({ ...createForm, calidad: e.target.value })}
               >
                 <option value="">No especificada</option>
-                <option value="Alta">Alta</option>
-                <option value="Media">Media</option>
-                <option value="Baja">Baja</option>
+                <option value={CALIDAD_ALTO}>{CALIDAD_ALTO}</option>
+                <option value={CALIDAD_MEDIO} translate="no">{CALIDAD_MEDIO}</option>
+                <option value={CALIDAD_BAJO}>{CALIDAD_BAJO}</option>
               </Form.Select>
             </Form.Group>
           </Form>

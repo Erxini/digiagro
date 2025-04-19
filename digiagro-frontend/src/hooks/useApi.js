@@ -37,27 +37,47 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
     setError(null);
     
     try {
+      console.log(`Realizando GET a ${baseUrl}/${endpoint}`);
+      
       const response = await fetch(`${baseUrl}/${endpoint}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(), // Incluir automáticamente el token
+          ...getAuthHeaders(),
           ...options.headers
         },
         ...options
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error en la petición');
+      // Capturar el texto de la respuesta primero
+      const responseText = await response.text();
+      console.log(`Respuesta recibida de ${endpoint}:`, responseText);
+      
+      // Si no hay contenido en la respuesta
+      if (!responseText || responseText.trim() === '') {
+        console.log('La respuesta está vacía');
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        return [];
       }
       
-      const result = await response.json();
-      setData(result);
-      return result;
+      // Intentar parsear la respuesta como JSON
+      let resultData;
+      try {
+        resultData = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Error al parsear respuesta JSON:', e);
+        return [];
+      }
+      
+      // Actualizar el estado data con el resultado
+      setData(resultData);
+      return resultData;
     } catch (err) {
+      console.error('Error en la petición GET:', err);
       setError(err.message || 'Error desconocido');
-      return null;
+      return []; // Devolvemos un array vacío en caso de error
     } finally {
       setLoading(false);
     }

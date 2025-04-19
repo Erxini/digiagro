@@ -1,7 +1,7 @@
 function Footer() {
   return (
-    <footer className="bg-warning bg-gradient py-4 px-3 bg-opacity-50 w-100">
-      <div className="container">
+    <footer className="bg-warning bg-gradient py-4 bg-opacity-50">
+      <div className="container-fluid px-4">
         <div className="row">
           {/* Columna 1 */}
           <div className="col-md-4 text-start">

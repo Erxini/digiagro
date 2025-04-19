@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Form, InputGroup, Row, Col, Modal } from 'react-bootstrap';
 import { useApi } from '../hooks/useApi';
+import DetallesCultivo from './DetallesCultivo';
 
 const CultivosList = ({ cultivos, onClose, onRefresh }) => {
   const [sortedCultivos, setSortedCultivos] = useState([]);
@@ -29,6 +30,8 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
   });
   const [formErrors, setFormErrors] = useState({});
   const [createFormErrors, setCreateFormErrors] = useState({});
+  const [showDetalles, setShowDetalles] = useState(false);
+  const [cultivoDetalles, setCultivoDetalles] = useState(null);
   
   const { del, put, post } = useApi();
 
@@ -201,6 +204,22 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
     }
   };
 
+  // Ver detalles del cultivo usando APIs externas
+  const handleVerDetalles = (cultivo) => {
+    setCultivoDetalles(cultivo.tipo);
+    setShowDetalles(true);
+  };
+
+  // Si se están mostrando los detalles, renderizar el componente DetallesCultivo
+  if (showDetalles && cultivoDetalles) {
+    return (
+      <DetallesCultivo 
+        cultivoTipo={cultivoDetalles} 
+        onClose={() => setShowDetalles(false)} 
+      />
+    );
+  }
+
   return (
     <Card className="mb-4 shadow-sm">
       <Card.Header className="d-flex justify-content-between align-items-center bg-success text-white">
@@ -323,6 +342,13 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
                         onClick={() => handleEditCultivo(cultivo)}
                       >
                         <i className="fas fa-edit"></i>
+                      </Button>
+                      <Button 
+                        variant="outline-success" 
+                        size="sm"
+                        onClick={() => handleVerDetalles(cultivo)}
+                      >
+                        <i className="fas fa-info-circle"></i>
                       </Button>
                     </td>
                   </tr>

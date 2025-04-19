@@ -8,6 +8,7 @@ import Home from './components/Home.jsx';
 import Login from './components/Login.jsx';
 import Admin from './components/Admin.jsx';
 import Principal from './components/Principal.jsx';
+import Calendario from './components/Calendario.jsx';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="admin" element={<Admin />} />
           <Route path="principal" element={<Principal />} />
+          <Route path="calendario" element={<Calendario />} />
         </Route>
       </Routes>
     </Router>
