@@ -1,6 +1,7 @@
 const Usuario = require("../database/models/usuarios");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { Op } = require("sequelize");
 
 // Definir una clave secreta para JWT (en producción, guarda esto en variables de entorno)
 const JWT_SECRET = "digiagro_secret_key"; // ¡Cambia esto en producción!
@@ -159,9 +160,21 @@ const deleteUsuario = async (id) => {
 };
 
 // 9.Eliminar todos los usuarios
-const deleteAllUsuarios = async () => {
+const deleteAllUsuarios = async (excludeAdmins = false) => {
   try {
-    return await Usuario.destroy({ where: {}, truncate: true });
+    if (excludeAdmins) {
+      // Si excludeAdmins es true, excluir a los administradores
+      return await Usuario.destroy({ 
+        where: { 
+          rol: { 
+            [Op.ne]: 'Admin' 
+          } 
+        } 
+      });
+    } else {
+      // Si excludeAdmins es false (o no se proporciona), eliminar todos
+      return await Usuario.destroy({ where: {} });
+    }
   } catch (error) {
     throw new Error("Error al eliminar todos los usuarios: " + error.message);
   }

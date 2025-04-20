@@ -110,7 +110,8 @@ const { Usuarios } = require("../database/models/usuarios");
   // 9. Eliminar todos los usuarios
   const deleteAllUsuarios = async (req, res) => {
     try {
-      await UsuariosService.deleteAllUsuarios();
+      const excludeAdmins = req.query.excludeAdmins === 'true';
+      await UsuariosService.deleteAllUsuarios(excludeAdmins);
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: error.message });

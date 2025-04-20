@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Button, Alert, Accordion, Form, InputGroup, Badge } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import CultivosList from './CultivosList';
 import ProduccionList from './ProduccionList';
 import RiegosList from './RiegosList';
@@ -33,6 +34,7 @@ const Principal = () => {
   const [isFiltering, setIsFiltering] = useState(false);
 
   const { get } = useApi();
+  const navigate = useNavigate();
 
   const { 
     cultivosData, 
@@ -269,6 +271,17 @@ const Principal = () => {
                 <i className="fas fa-calendar me-2"></i>
                 {new Date().toLocaleDateString()}
               </p>
+              {/* Botón "Administrar Usuarios" solo visible para administradores */}
+              {localStorage.getItem('user') && JSON.parse(localStorage.getItem('user')).rol === 'Admin' && (
+                <Button 
+                  variant="danger" 
+                  className="mt-2"
+                  onClick={() => navigate('/admin')}
+                >
+                  <i className="fas fa-users-cog me-2"></i>
+                  Administrar Usuarios
+                </Button>
+              )}
             </Col>
           </Row>
         </Card.Body>

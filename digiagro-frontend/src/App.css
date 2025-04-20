@@ -7,7 +7,7 @@
 
 /* Variables de colores */
 :root {
-  --primary-green: #4CAF50;
+  --primary-green: #3c753e;
   --secondary-gold: #DAA520;
   --accent-brown: #A0522D;
   --background-white: #FFFFFF;
@@ -98,6 +98,18 @@ body {
 /* Asegurar que el fondo verde del header se aplique correctamente */
 header.bg-primary-green {
   background-color: var(--primary-green) !important;
+}
+
+/* Animación para el menú hamburguesa */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Resto de estilos originales */

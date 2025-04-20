@@ -6,7 +6,7 @@ import { useFormValidation } from '../hooks/useFormValidation';
 import { useAuth } from '../hooks/useAuth';
 
 function Login() {
-  const [hovered, setHovered] = useState('register'); // Estado inicial en 'register'
+  const [activeForm, setActiveForm] = useState('login'); // Cambiamos el nombre del estado para reflejar mejor su propósito
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 800);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { register, login, authError, loginFieldErrors } = useAuth(); // Añadido loginFieldErrors
@@ -109,9 +109,10 @@ function Login() {
     validateLogin
   );
 
-  useEffect(() => {
-    //console.log('Estado hovered actualizado:', hovered);
-  }, [hovered]);
+  // Función para cambiar entre formularios
+  const toggleForm = () => {
+    setActiveForm(activeForm === 'login' ? 'register' : 'login');
+  };
 
   // Función para manejar el registro
   const submitRegister = async () => {
@@ -120,7 +121,7 @@ function Login() {
       
       if (success) {
         resetRegisterForm();
-        setHovered('login'); // Cambiar a login después de registro exitoso
+        setActiveForm('login'); // Cambiar a login después de registro exitoso
         setShowSuccessModal(true); // Mostrar el modal de éxito
         console.log('Usuario registrado con éxito');
       }
@@ -142,12 +143,10 @@ function Login() {
 
   // Determinar la clase del overlay según el estado y si es móvil o no
   const getOverlayClass = () => {
-    if (!hovered) return '';
-    
     if (isMobile) {
-      return hovered === 'login' ? 'slide-up' : hovered === 'register' ? 'slide-down' : '';
+      return activeForm === 'login' ? 'slide-up' : 'slide-down';
     } else {
-      return hovered === 'login' ? 'slide-left' : hovered === 'register' ? 'slide-right' : '';
+      return activeForm === 'login' ? 'slide-left' : 'slide-right';
     }
   };
 
@@ -167,10 +166,7 @@ function Login() {
           style={{ margin: isMobile ? '0 auto' : '-20px 150px' }}
         >
           {/* Login Form */}
-          <div className="login-form p-4 bg-white shadow position-relative z-2"
-            onMouseEnter={() => setHovered('login')}
-            onMouseLeave={() => setHovered(null)}
-          >
+          <div className="login-form p-4 bg-white shadow position-relative z-2">
             <h3 className="mb-3">Iniciar Sesión</h3>
             {/* Solo mostramos el error general si no hay errores específicos de campo */}
             {authError && !Object.keys(loginFieldErrors).length > 0 && 
@@ -216,14 +212,11 @@ function Login() {
           {/* Register Form */}
           <div
             className="register-form p-4 bg-white shadow position-relative z-2"
-            onMouseEnter={() => setHovered('register')}
-            onMouseLeave={() => setHovered(null)}
           >
             <h3 className="mb-3">Registro</h3>
             {authError && <div className="alert alert-danger">{authError}</div>}
             <form onSubmit={handleRegisterSubmit(submitRegister)}>
               <div className="mb-3 text-start">
-                {/* <label className="form-label">Nombre</label> */}
                 <input
                   type="text"
                   name="nombre"
@@ -240,7 +233,6 @@ function Login() {
                 }
               </div>
               <div className="mb-3 text-start">
-                {/* <label className="form-label">Email</label> */}
                 <input
                   type="email"
                   name="email"
@@ -257,7 +249,6 @@ function Login() {
                 }
               </div>
               <div className="mb-3 text-start">
-                {/* <label className="form-label">Contraseña</label> */}
                 <input
                   type="password"
                   name="password"
@@ -274,7 +265,6 @@ function Login() {
                 }
               </div>
               <div className="mb-3 text-start">
-                {/* <label className="form-label">Teléfono</label> */}
                 <input
                   type="text"
                   name="telefono"
@@ -291,7 +281,6 @@ function Login() {
                 }
               </div>
               <div className="mb-3 text-start">
-                {/* <label className="form-label">Rol</label> */}
                 <select
                   name="rol"
                   className={`form-select ${registerErrors.rol ? 'is-invalid' : ''}`}
@@ -315,7 +304,27 @@ function Login() {
           </div>
 
           {/* Overlay con clases dinámicas según el estado y dispositivo */}
-          <div className={`overlay ${getOverlayClass()}`}></div>
+          <div 
+            className={`overlay ${getOverlayClass()}`} 
+            onClick={toggleForm}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className="overlay-content">
+              {activeForm === 'login' ? (
+                <div className="text-center text-light">
+                  <h4>¿No tienes cuenta?</h4>
+                  <p>Regístrate para comenzar</p>
+                  <Button variant="outline-light">Regístrate</Button>
+                </div>
+              ) : (
+                <div className="text-center text-light">
+                  <h4>¿Ya tienes cuenta?</h4>
+                  <p>Inicia sesión con tus credenciales</p>
+                  <Button variant="outline-light">Iniciar Sesión</Button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

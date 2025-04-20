@@ -1,8 +1,6 @@
 import React from 'react';
 import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
 import UsuariosList from './UsuariosList';
-import CultivosList from './CultivosList';
-import ProduccionList from './ProduccionList';
 import { useAdmin } from '../hooks/useAdmin';
 
 const Admin = () => {
@@ -27,37 +25,13 @@ const Admin = () => {
   // Renderizado de las cards de estadísticas
   const renderStats = () => {
     return (
-      <Row className="mb-4">
-        <Col md={4}>
+      <Row className="mb-4 justify-content-center">
+        <Col md={6}>
           <Card className="text-center mb-3 h-100" bg="accent-brown" text="light">
             <Card.Body>
               <Card.Title><i className="fas fa-users mr-2"></i> Usuarios</Card.Title>
               <h2>{usersData ? usersData.length : 0}</h2>
               <Card.Text>Total de usuarios registrados</Card.Text>
-            </Card.Body>
-            <Card.Footer>
-              <small>Última actualización: {lastUpdate}</small>
-            </Card.Footer>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="text-center mb-3 h-100" bg="success" text="white">
-            <Card.Body>
-              <Card.Title><i className="fas fa-seedling mr-2"></i> Cultivos</Card.Title>
-              <h2>{cultivosData ? cultivosData.length : 0}</h2>
-              <Card.Text>Total de cultivos registrados</Card.Text>
-            </Card.Body>
-            <Card.Footer>
-              <small>Última actualización: {lastUpdate}</small>
-            </Card.Footer>
-          </Card>
-        </Col>
-        <Col md={4}>
-          <Card className="text-center mb-3 h-100" bg="warning" text="dark">
-            <Card.Body>
-              <Card.Title><i className="fas fa-chart-line mr-2"></i> Producción</Card.Title>
-              <h2>{produccionData ? produccionData.length : 0}</h2>
-              <Card.Text>Total de registros de producción</Card.Text>
             </Card.Body>
             <Card.Footer>
               <small>Última actualización: {lastUpdate}</small>
@@ -77,24 +51,6 @@ const Admin = () => {
             usuarios={usersData} 
             onClose={() => changeSection(null)} 
             onRefresh={listarUsuarios}
-          />
-        );
-      
-      case 'cultivos':
-        return (
-          <CultivosList 
-            cultivos={cultivosData} 
-            onClose={() => changeSection(null)} 
-            onRefresh={obtenerTodosCultivos}
-          />
-        );
-      
-      case 'produccion':
-        return (
-          <ProduccionList 
-            producciones={produccionData} 
-            onClose={() => changeSection(null)} 
-            onRefresh={obtenerTodasProducciones}
           />
         );
       
@@ -145,8 +101,8 @@ const Admin = () => {
           
           <Card className="shadow-sm mb-4">
             <Card.Body>
-              <Row className="mb-4">
-                <Col md={4}>
+              <Row className="mb-4 justify-content-center">
+                <Col md={6}>
                   <Button 
                     variant={activeSection === 'usuarios' ? 'accent-brown' : 'outline-accent-brown'} 
                     className={`w-100 ${activeSection === 'usuarios' ? 'text-light' : 'text-accent-brown'}`}
@@ -154,26 +110,6 @@ const Admin = () => {
                   >
                     <i className="fas fa-users me-2"></i>
                     Gestión de Usuarios
-                  </Button>
-                </Col>
-                <Col md={4}>
-                  <Button 
-                    variant={activeSection === 'cultivos' ? 'success' : 'outline-success'} 
-                    className="w-100"
-                    onClick={() => changeSection('cultivos')}
-                  >
-                    <i className="fas fa-seedling me-2"></i>
-                    Gestión de Cultivos
-                  </Button>
-                </Col>
-                <Col md={4}>
-                  <Button 
-                    variant={activeSection === 'produccion' ? 'warning' : 'outline-warning'} 
-                    className="w-100"
-                    onClick={() => changeSection('produccion')}
-                  >
-                    <i className="fas fa-chart-line me-2"></i>
-                    Gestión de Producción
                   </Button>
                 </Col>
               </Row>

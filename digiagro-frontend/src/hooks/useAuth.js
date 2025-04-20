@@ -64,15 +64,9 @@ export const useAuth = () => {
         setToken(response.token);
         setIsAuthenticated(true);
         
-        // Redirigir según el rol (asegurándonos de realizar la comparación correcta)
-        console.log('Rol del usuario:', response.usuario.rol);
-        if (response.usuario.rol === 'Admin') {
-          console.log('Redirigiendo a /admin');
-          navigate('/admin');
-        } else {
-          console.log('Redirigiendo a /principal');
-          navigate('/principal');
-        }
+        // Ahora todos los usuarios serán redirigidos a /principal independientemente del rol
+        console.log('Redirigiendo a /principal');
+        navigate('/principal');
         
         return true;
       } else {

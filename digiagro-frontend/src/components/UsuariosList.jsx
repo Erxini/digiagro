@@ -121,7 +121,8 @@ const UsuariosList = ({ usuarios, onClose, onRefresh }) => {
   // Eliminar todos los usuarios
   const handleDeleteAllUsuarios = async () => {
     try {
-      await del('usuarios');
+      // Modificamos la llamada para excluir admins - enviamos una opción para que el backend lo tenga en cuenta
+      await del('usuarios', { params: { excludeAdmins: true } });
       setShowDeleteAllModal(false);
       
       // Refrescar la lista de usuarios después de eliminar todos
@@ -294,17 +295,19 @@ const UsuariosList = ({ usuarios, onClose, onRefresh }) => {
                     <td>{usuario.telefono || "-"}</td>
                     <td>{getRolBadge(usuario.rol)}</td>
                     <td>
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm" 
-                        className="me-1"
-                        onClick={() => {
-                          setSelectedUsuario(usuario);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        <i className="fas fa-trash-alt"></i>
-                      </Button>
+                      {usuario.rol !== 'Admin' && (
+                        <Button 
+                          variant="outline-danger" 
+                          size="sm" 
+                          className="me-1"
+                          onClick={() => {
+                            setSelectedUsuario(usuario);
+                            setShowDeleteModal(true);
+                          }}
+                        >
+                          <i className="fas fa-trash-alt"></i>
+                        </Button>
+                      )}
                       <Button 
                         variant="outline-primary" 
                         size="sm"
@@ -374,22 +377,22 @@ const UsuariosList = ({ usuarios, onClose, onRefresh }) => {
       {/* Modal de confirmación para eliminar todos los usuarios */}
       <Modal show={showDeleteAllModal} onHide={() => setShowDeleteAllModal(false)} centered>
         <Modal.Header closeButton className="bg-danger text-white">
-          <Modal.Title>¡Atención! Eliminar todos los usuarios</Modal.Title>
+          <Modal.Title>¡Atención! Eliminar usuarios</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="text-center mb-3">
             <i className="fas fa-exclamation-triangle fa-3x text-warning"></i>
           </div>
-          <p className="fw-bold">Esta acción eliminará TODOS los usuarios del sistema.</p>
-          <p>Esta operación es irreversible y podría afectar gravemente el funcionamiento de la aplicación.</p>
-          <p>¿Está completamente seguro de que desea continuar?</p>
+          <p className="fw-bold">Esta acción eliminará todos los usuarios que no sean administradores.</p>
+          <p>Los usuarios con rol de administrador serán preservados para mantener el funcionamiento del sistema.</p>
+          <p>Esta operación es irreversible. ¿Está seguro que desea continuar?</p>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDeleteAllModal(false)}>
             Cancelar
           </Button>
           <Button variant="danger" onClick={handleDeleteAllUsuarios}>
-            Sí, eliminar todos
+            Sí, eliminar usuarios
           </Button>
         </Modal.Footer>
       </Modal>
