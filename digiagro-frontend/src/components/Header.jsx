@@ -47,13 +47,13 @@ function Header() {
       <nav className="d-none d-md-block">
         <ul className="nav justify-content-end" style={{ listStyle: 'none', paddingTop: '65px' }}>
           <li className="nav-item">
-            <a
+            <Link
               className="nav-link btn me-2 bg-secondary-gold text-accent-brown"
               style={{ padding: '5px 10px', fontSize: '15px' }}
-              href="#cuadernocampo"
+              to="/cuaderno"
             >
               Cuaderno de Campo
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
             <Link
@@ -98,14 +98,14 @@ function Header() {
              }}>
           <ul className="nav flex-column" style={{ listStyle: 'none' }}>
             <li className="nav-item mb-2">
-              <a
+              <Link
                 className="nav-link btn w-100 bg-secondary-gold text-accent-brown"
                 style={{ padding: '10px', fontSize: '16px' }}
-                href="#cuadernocampo"
+                to="/cuaderno"
                 onClick={() => setMenuOpen(false)}
               >
                 Cuaderno de Campo
-              </a>
+              </Link>
             </li>
             <li className="nav-item mb-2">
               <Link

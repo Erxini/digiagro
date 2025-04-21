@@ -1,0 +1,182 @@
+.cuaderno-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Sen', sans-serif;
+  padding-top: 140px; /* Añadido para evitar que el header tape el contenido */
+}
+
+.cuaderno-page {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 5px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  background-image: linear-gradient(#e3e3e3 1px, transparent 1px);
+  background-size: 100% 25px;
+  background-position: 0 5px;
+  position: relative;
+  margin-bottom: 40px;
+}
+
+.cuaderno-page::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: #f8f8f8;
+  border-right: 2px solid #e3e3e3;
+  border-radius: 5px 0 0 5px;
+  z-index: 0;
+}
+
+.cuaderno-page::after {
+  content: '';
+  position: absolute;
+  left: 52px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #ff6b6b;
+  z-index: 1;
+}
+
+.cuaderno-content {
+  position: relative;
+  z-index: 2;
+  margin-left: 60px;
+  padding-top: 10px;
+}
+
+.cuaderno-title {
+  color: #2a7d2a;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #4CAF50;
+  padding-bottom: 10px;
+  font-size: 1.8em; /* Reducción del tamaño de la fuente */
+}
+
+.cuaderno-section {
+  margin-bottom: 40px;
+}
+
+.cuaderno-section h3 {
+  color: #2a7d2a;
+  margin-bottom: 15px;
+}
+
+/* Eliminar los puntos de las listas y alinear a la izquierda */
+.cuaderno-section ul {
+  list-style-type: none;
+  padding-left: 0;
+  text-align: left;
+}
+
+/* Mantener los estilos para las listas en la sección de normativa */
+.normativa-content ul {
+  list-style-type: none;
+  padding-left: 0;
+  text-align: center;
+}
+
+.normativa-tabs {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.normativa-tab {
+  padding: 10px 20px;
+  background-color: #f0f0f0;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px 5px 0 0;
+  margin-right: 5px;
+  transition: all 0.3s;
+  font-weight: 600;
+}
+
+.normativa-tab.active {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.normativa-content {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 0 5px 5px 5px;
+  border: 1px solid #e0e0e0;
+}
+
+.calculadora {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 5px;
+  border: 1px solid #e0e0e0;
+  margin-top: 20px;
+}
+
+.calculadora .form-group {
+  margin-bottom: 15px;
+}
+
+.calculadora label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.calculadora input, .calculadora select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.calculadora button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.calculadora button:hover {
+  background-color: #236426;
+}
+
+.resultado {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+  border-left: 4px solid #4CAF50;
+}
+
+.producto-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-left: 3px solid #4CAF50;
+  background-color: #f5f5f5;
+}
+
+.bg-ecologico {
+  background-color: #e8f5e9;
+}
+
+.bg-convencional {
+  background-color: #fff3e0;
+}
+
+.imagen-seccion {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin: 20px 0;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}

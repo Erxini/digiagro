@@ -292,9 +292,9 @@ const Meteorologia = () => {
     <Container fluid className="px-4" style={{ marginTop: '130px', marginBottom: '2rem' }}>
       <Card className="shadow-sm mb-4">
         <Card.Header className="bg-success text-white">
-          <h2 className="mb-0">
+          <h2 className="mb-0 fs-4">
             <i className="fas fa-cloud-sun-rain me-2"></i>
-            Meteorología Agrícola
+            Pronóstico Meteorológico
           </h2>
         </Card.Header>
 
@@ -310,88 +310,9 @@ const Meteorologia = () => {
             </Row>
           )}
 
-          <Row>
-            <Col lg={7} className="mb-4">
-              <Card className="shadow-sm h-100">
-                <Card.Header className="bg-light">
-                  <h5 className="mb-0">
-                    <i className="fas fa-map-marked-alt me-2"></i>
-                    Mapa de Parcelas
-                  </h5>
-                </Card.Header>
-                <Card.Body className="p-0">
-                  {/* Mapa de Leaflet */}
-                  <div 
-                    ref={mapContainerRef} 
-                    style={{ height: '500px', width: '100%', borderRadius: '0 0 0.375rem 0.375rem' }}
-                  />
-                  <div className="bg-light p-2 border-top">
-                    <small>
-                      <strong>Coordenadas seleccionadas:</strong> {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
-                    </small>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            
-            <Col lg={5}>
-              <Card className="shadow-sm mb-4">
-                <Card.Header className="bg-light d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0">
-                    <i className="fas fa-cloud me-2"></i>
-                    Condiciones Actuales
-                  </h5>
-                  {weatherData && (
-                    <span className="text-muted small">
-                      Actualizado: {weatherData.time.toLocaleTimeString('es-ES')}
-                    </span>
-                  )}
-                </Card.Header>
-                <Card.Body>
-                  {error && (
-                    <Alert variant="danger">
-                      <i className="fas fa-exclamation-triangle me-2"></i>
-                      {error}
-                    </Alert>
-                  )}
-                  
-                  {isLoading && !weatherData && (
-                    <div className="text-center py-4">
-                      <Spinner animation="border" variant="success" />
-                      <p className="mt-2">Obteniendo datos meteorológicos...</p>
-                    </div>
-                  )}
-                  
-                  {weatherData && (
-                    <div className="text-center">
-                      <div className="mb-3">
-                        <i className={`${getWeatherIcon(weatherData.weathercode)} fa-3x`}></i>
-                      </div>
-                      <h2 className="display-4 mb-0">{weatherData.temperature}°C</h2>
-                      <p className="lead">{getWeatherDescription(weatherData.weathercode)}</p>
-                      
-                      <Row className="mt-4">
-                        <Col xs={6}>
-                          <div className="border rounded p-2">
-                            <div className="text-muted">Viento</div>
-                            <div className="fw-bold">{weatherData.windspeed} km/h</div>
-                          </div>
-                        </Col>
-                        <Col xs={6}>
-                          <div className="border rounded p-2">
-                            <div className="text-muted">Dirección</div>
-                            <div className="fw-bold">
-                              <i className="fas fa-long-arrow-alt-up" style={{ transform: `rotate(${weatherData.winddirection}deg)` }}></i>
-                              {' '}{weatherData.winddirection}°
-                            </div>
-                          </div>
-                        </Col>
-                      </Row>
-                    </div>
-                  )}
-                </Card.Body>
-              </Card>
-
+          {/* NUEVA ESTRUCTURA: Pronóstico 5 días arriba (ancho completo) */}
+          <Row className="mb-4">
+            <Col lg={12}>
               <Card className="shadow-sm">
                 <Card.Header className="bg-light">
                   <h5 className="mb-0">
@@ -448,46 +369,51 @@ const Meteorologia = () => {
                           </div>
                         </div>
                         
-                        <ListGroup variant="flush" className="mb-3">
-                          <ListGroup.Item className="d-flex justify-content-between align-items-center py-2">
-                            <div>
-                              <i className="fas fa-tint text-primary me-2"></i>
-                              Precipitación
-                            </div>
-                            <div>
-                              {forecastData.precipitation[selectedDay]} mm
-                              <Badge bg={forecastData.precipitation_probability[selectedDay] > 50 ? 'primary' : 'secondary'} className="ms-2">
-                                {forecastData.precipitation_probability[selectedDay]}%
-                              </Badge>
-                            </div>
-                          </ListGroup.Item>
-                          <ListGroup.Item className="d-flex justify-content-between align-items-center py-2">
-                            <div>
-                              <i className="fas fa-wind text-secondary me-2"></i>
-                              Viento
-                            </div>
-                            <div>
-                              {forecastData.windspeed[selectedDay]} km/h
-                              <i className="fas fa-long-arrow-alt-up ms-2" style={{ transform: `rotate(${forecastData.winddirection[selectedDay]}deg)` }}></i>
-                            </div>
-                          </ListGroup.Item>
-                        </ListGroup>
-                        
-                        <h6 className="mb-2">
-                          <i className="fas fa-tractor me-2"></i>
-                          Recomendaciones Agrícolas
-                        </h6>
-                        
-                        {getAgriculturalRecommendations(selectedDay).length > 0 ? (
-                          getAgriculturalRecommendations(selectedDay).map((rec, idx) => (
-                            <Alert key={idx} variant={rec.variant} className="py-2 mb-2">
-                              <i className={`${rec.icon} me-2`}></i>
-                              {rec.text}
-                            </Alert>
-                          ))
-                        ) : (
-                          <p className="text-muted fst-italic mb-0">Sin recomendaciones específicas para este día.</p>
-                        )}
+                        <Row>
+                          <Col md={6}>
+                            <ListGroup variant="flush" className="mb-3">
+                              <ListGroup.Item className="d-flex justify-content-between align-items-center py-2">
+                                <div>
+                                  <i className="fas fa-tint text-primary me-2"></i>
+                                  Precipitación
+                                </div>
+                                <div>
+                                  {forecastData.precipitation[selectedDay]} mm
+                                  <Badge bg={forecastData.precipitation_probability[selectedDay] > 50 ? 'primary' : 'secondary'} className="ms-2">
+                                    {forecastData.precipitation_probability[selectedDay]}%
+                                  </Badge>
+                                </div>
+                              </ListGroup.Item>
+                              <ListGroup.Item className="d-flex justify-content-between align-items-center py-2">
+                                <div>
+                                  <i className="fas fa-wind text-secondary me-2"></i>
+                                  Viento
+                                </div>
+                                <div>
+                                  {forecastData.windspeed[selectedDay]} km/h
+                                  <i className="fas fa-long-arrow-alt-up ms-2" style={{ transform: `rotate(${forecastData.winddirection[selectedDay]}deg)` }}></i>
+                                </div>
+                              </ListGroup.Item>
+                            </ListGroup>
+                          </Col>
+                          <Col md={6}>
+                            <h6 className="mb-2">
+                              <i className="fas fa-tractor me-2"></i>
+                              Recomendaciones Agrícolas
+                            </h6>
+                            
+                            {getAgriculturalRecommendations(selectedDay).length > 0 ? (
+                              getAgriculturalRecommendations(selectedDay).map((rec, idx) => (
+                                <Alert key={idx} variant={rec.variant} className="py-2 mb-2">
+                                  <i className={`${rec.icon} me-2`}></i>
+                                  {rec.text}
+                                </Alert>
+                              ))
+                            ) : (
+                              <p className="text-muted fst-italic mb-0">Sin recomendaciones específicas para este día.</p>
+                            )}
+                          </Col>
+                        </Row>
                       </div>
                     </div>
                   )}
@@ -496,6 +422,100 @@ const Meteorologia = () => {
                   <i className="fas fa-info-circle me-1"></i>
                   Datos meteorológicos proporcionados por Open-Meteo API con actualizaciones diarias.
                 </Card.Footer>
+              </Card>
+            </Col>
+          </Row>
+
+          {/* NUEVA ESTRUCTURA: Mapa y Condiciones actuales abajo (dos columnas) */}
+          <Row>
+            {/* Mapa a la izquierda (50%) */}
+            <Col md={6} className="mb-4">
+              <Card className="shadow-sm h-100">
+                <Card.Header className="bg-light">
+                  <h5 className="mb-0">
+                    <i className="fas fa-map-marked-alt me-2"></i>
+                    Mapa de Parcelas
+                  </h5>
+                </Card.Header>
+                <Card.Body className="p-0">
+                  {/* Mapa de Leaflet */}
+                  <div 
+                    ref={mapContainerRef} 
+                    style={{ height: '400px', width: '100%', borderRadius: '0 0 0.375rem 0.375rem' }}
+                  />
+                  <div className="bg-light p-2 border-top">
+                    <small>
+                      <strong>Coordenadas seleccionadas:</strong> {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
+                    </small>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+            
+            {/* Condiciones actuales a la derecha (50%) */}
+            <Col md={6} className="mb-4">
+              <Card className="shadow-sm h-100">
+                <Card.Header className="bg-light d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">
+                    <i className="fas fa-cloud me-2"></i>
+                    Condiciones Actuales
+                  </h5>
+                  {weatherData && (
+                    <span className="text-muted small">
+                      Actualizado: {weatherData.time.toLocaleTimeString('es-ES')}
+                    </span>
+                  )}
+                </Card.Header>
+                <Card.Body>
+                  {error && (
+                    <Alert variant="danger">
+                      <i className="fas fa-exclamation-triangle me-2"></i>
+                      {error}
+                    </Alert>
+                  )}
+                  
+                  {isLoading && !weatherData && (
+                    <div className="text-center py-4">
+                      <Spinner animation="border" variant="success" />
+                      <p className="mt-2">Obteniendo datos meteorológicos...</p>
+                    </div>
+                  )}
+                  
+                  {weatherData && (
+                    <div className="text-center">
+                      <div className="mb-3">
+                        <i className={`${getWeatherIcon(weatherData.weathercode)} fa-3x`}></i>
+                      </div>
+                      <h2 className="display-4 mb-0">{weatherData.temperature}°C</h2>
+                      <p className="lead">{getWeatherDescription(weatherData.weathercode)}</p>
+                      
+                      <Row className="mt-4">
+                        <Col xs={6}>
+                          <div className="border rounded p-2">
+                            <div className="text-muted">Viento</div>
+                            <div className="fw-bold">{weatherData.windspeed} km/h</div>
+                          </div>
+                        </Col>
+                        <Col xs={6}>
+                          <div className="border rounded p-2">
+                            <div className="text-muted">Dirección</div>
+                            <div className="fw-bold">
+                              <i className="fas fa-long-arrow-alt-up" style={{ transform: `rotate(${weatherData.winddirection}deg)` }}></i>
+                              {' '}{weatherData.winddirection}°
+                            </div>
+                          </div>
+                        </Col>
+                      </Row>
+                      
+                      <div className="mt-4 text-muted">
+                        <p className="mb-0">
+                          <i className="fas fa-map-marker-alt me-1"></i>
+                          Ubicación seleccionada: {position.lat.toFixed(4)}, {position.lng.toFixed(4)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </Card.Body>
               </Card>
             </Col>
           </Row>
