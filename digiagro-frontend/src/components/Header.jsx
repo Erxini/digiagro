@@ -9,8 +9,14 @@ function Header() {
   const { isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   
-  // Comprobamos si estamos en las rutas admin o principal
-  const isAuthenticatedRoute = location.pathname === '/admin' || location.pathname === '/principal';
+  // Comprobamos si estamos en cualquiera de las rutas autenticadas
+  const isAuthenticatedRoute = [
+    '/admin',
+    '/principal',
+    '/cuaderno',
+    '/calendario',
+    '/meteorologia'
+  ].includes(location.pathname);
   
   // Si estamos autenticados y en una ruta autenticada, mostramos "Salir", de lo contrario "Login"
   const buttonText = isAuthenticatedRoute ? 'Salir' : 'Login';

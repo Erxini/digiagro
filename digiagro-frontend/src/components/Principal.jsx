@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Alert, Accordion, Form, InputGroup, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import CultivosList from './CultivosList';
@@ -7,6 +7,8 @@ import RiegosList from './RiegosList';
 import SuelosList from './SuelosList';
 import { usePrincipal } from '../hooks/usePrincipal';
 import { useApi } from '../hooks/useApi';
+import { useAuth } from '../hooks/useAuth';
+import CuadernoCampo from './CuadernoCampo';
 
 // Definimos constantes simples con términos que indican ambos géneros
 const CALIDAD_ALTO = "Alto/a";
@@ -55,6 +57,20 @@ const Principal = () => {
     changeSection,
     setAlertMessage
   } = usePrincipal();
+
+  const { userData } = useAuth();
+
+  // Estado para el cuaderno de campo
+  const [mostrarCuadernoCampo, setMostrarCuadernoCampo] = useState(false);
+
+  // Función para mostrar/ocultar el cuaderno de campo
+  const toggleCuadernoCampo = () => {
+    setMostrarCuadernoCampo(!mostrarCuadernoCampo);
+    // Si estamos mostrando el cuaderno, desactivar el componente actual
+    if (!mostrarCuadernoCampo) {
+      changeSection(null);
+    }
+  };
 
   // Función para aplicar filtros
   const aplicarFiltro = async (tipo) => {
@@ -599,7 +615,30 @@ const Principal = () => {
                 </Col>
               </Row>
               
-              {renderContent()}
+              <div className="d-flex justify-content-center mt-4 mb-3">
+                <Button 
+                  variant={mostrarCuadernoCampo ? 'secondary' : 'outline-secondary'} 
+                  className="px-4 py-2"
+                  onClick={toggleCuadernoCampo}
+                  style={{ minWidth: '250px' }}
+                >
+                  <i className="fas fa-book me-3"></i>
+                  Mi Cuaderno de Campo
+                </Button>
+              </div>
+              
+              {mostrarCuadernoCampo ? (
+                <div className="cuaderno-campo-wrapper">
+                  <div className="back-button-container mb-2">
+                    <Button className="back-button" onClick={toggleCuadernoCampo}>
+                      ← Volver al Panel de Control
+                    </Button>
+                  </div>
+                  <CuadernoCampo />
+                </div>
+              ) : (
+                renderContent()
+              )}
             </Card.Body>
           </Card>
         </>

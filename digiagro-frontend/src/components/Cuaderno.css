@@ -3,7 +3,8 @@
   margin: 0 auto;
   padding: 20px;
   font-family: 'Sen', sans-serif;
-  padding-top: 140px; /* Añadido para evitar que el header tape el contenido */
+  padding-top: 80px; /* Aumentado para compensar la altura del header */
+  margin-top: 30px; /* Añadido espacio adicional para mayor separación */
 }
 
 .cuaderno-page {

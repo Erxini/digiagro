@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useApi } from './useApi';
 
 /**
@@ -14,6 +14,7 @@ export const useAuth = () => {
   const [loginFieldErrors, setLoginFieldErrors] = useState({}); // Nuevo estado para errores específicos de campos
   const { post, error } = useApi();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Comprobar si hay un usuario y token en localStorage al cargar la página
   useEffect(() => {
@@ -64,8 +65,7 @@ export const useAuth = () => {
         setToken(response.token);
         setIsAuthenticated(true);
         
-        // Ahora todos los usuarios serán redirigidos a /principal independientemente del rol
-        console.log('Redirigiendo a /principal');
+        // Redirigir después de inicio de sesión exitoso
         navigate('/principal');
         
         return true;
@@ -82,8 +82,6 @@ export const useAuth = () => {
       
       // Siempre establecer el error de contraseña para fallos de autenticación
       if (error) {
-        // Independientemente del mensaje específico, lo tratamos como contraseña incorrecta
-        // ya que es la experiencia que queremos dar al usuario
         setLoginFieldErrors({
           password: 'Contraseña incorrecta'
         });

@@ -5,6 +5,14 @@ import './App.css'
 import App from './App.jsx'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
+import FileSaver from 'file-saver';
+
+// Exponer las librerías globalmente para que puedan ser utilizadas por otros componentes
+window.jspdf = { jsPDF };
+window.XLSX = XLSX;
+window.FileSaver = FileSaver;
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
