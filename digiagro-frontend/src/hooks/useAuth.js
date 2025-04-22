@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApi } from './useApi';
 
@@ -15,6 +15,62 @@ export const useAuth = () => {
   const { post, error } = useApi();
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Referencia para el temporizador de inactividad
+  const inactivityTimerRef = useRef(null);
+  // Duración de la sesión en milisegundos (60 minutos = 3600000 ms)
+  const SESSION_TIMEOUT = 60 * 60 * 1000;
+
+  // Función para reiniciar el temporizador de inactividad
+  const resetInactivityTimer = () => {
+    // Limpiar el temporizador anterior si existe
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    // Solo configurar un nuevo temporizador si el usuario está autenticado
+    if (isAuthenticated) {
+      inactivityTimerRef.current = setTimeout(() => {
+        console.log('Sesión cerrada por inactividad (60 minutos)');
+        logout();
+      }, SESSION_TIMEOUT);
+    }
+  };
+
+  // Efecto para configurar los listeners de eventos que reinician el temporizador
+  useEffect(() => {
+    // Eventos de usuario que indican actividad
+    const activityEvents = ['mousedown', 'keypress', 'scroll', 'touchstart'];
+    
+    // Función que maneja cualquier evento de actividad
+    const handleUserActivity = () => {
+      resetInactivityTimer();
+    };
+    
+    // Configurar listeners solo si el usuario está autenticado
+    if (isAuthenticated) {
+      // Añadir listeners para cada tipo de evento
+      activityEvents.forEach(eventType => {
+        window.addEventListener(eventType, handleUserActivity);
+      });
+      
+      // Configurar el temporizador inicial
+      resetInactivityTimer();
+      
+      // Limpiar al desmontar el componente
+      return () => {
+        // Eliminar todos los listeners
+        activityEvents.forEach(eventType => {
+          window.removeEventListener(eventType, handleUserActivity);
+        });
+        
+        // Limpiar el temporizador
+        if (inactivityTimerRef.current) {
+          clearTimeout(inactivityTimerRef.current);
+        }
+      };
+    }
+  }, [isAuthenticated]); // Este efecto se ejecuta cuando cambia isAuthenticated
 
   // Comprobar si hay un usuario y token en localStorage al cargar la página
   useEffect(() => {
@@ -115,6 +171,12 @@ export const useAuth = () => {
 
   // Función para cerrar sesión
   const logout = () => {
+    // Limpiar el temporizador de inactividad
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+    
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     setUser(null);
@@ -137,6 +199,7 @@ export const useAuth = () => {
     login,
     register,
     logout,
-    getAuthHeader
+    getAuthHeader,
+    resetInactivityTimer // Exportamos esta función para poder usarla desde fuera si es necesario
   };
 };

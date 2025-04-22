@@ -9,20 +9,10 @@ function Header() {
   const { isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   
-  // Comprobamos si estamos en cualquiera de las rutas autenticadas
-  const isAuthenticatedRoute = [
-    '/admin',
-    '/principal',
-    '/cuaderno',
-    '/calendario',
-    '/meteorologia'
-  ].includes(location.pathname);
-  
-  // Si estamos autenticados y en una ruta autenticada, mostramos "Salir", de lo contrario "Login"
-  const buttonText = isAuthenticatedRoute ? 'Salir' : 'Login';
-  // Si estamos autenticados, ejecutamos logout al hacer clic, de lo contrario redirigimos a login
-  const buttonAction = isAuthenticatedRoute ? logout : null;
-  const buttonLink = isAuthenticatedRoute ? '/' : '/login';
+  // Determinar texto y acción del botón basado en si el usuario está autenticado
+  const buttonText = isAuthenticated ? 'Salir' : 'Login';
+  const buttonAction = isAuthenticated ? logout : null;
+  const buttonLink = isAuthenticated ? '/' : '/login';
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -37,7 +27,7 @@ function Header() {
         <img src={logo} alt="Logo" style={{ height: '90px', cursor: 'pointer', marginTop: '35px' }} />
       </Link>
       
-      {/* Botón hamburguesa visible solo en pantallas pequeñas */}
+      {/* Botón hamburguesa visible en pantallas pequeñas */}
       <button 
         className="navbar-toggler d-md-none"
         type="button"

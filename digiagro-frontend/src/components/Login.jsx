@@ -163,7 +163,7 @@ function Login() {
       <div className="container-fluid d-flex justify-content-center">
         <div
           className={`login-register-wrapper position-relative ${isMobile ? 'd-flex flex-column' : 'd-flex'}`}
-          style={{ margin: isMobile ? '0 auto' : '-20px 150px' }}
+          style={{ margin: isMobile ? '0 auto' : '-20px 50px' }}
         >
           {/* Login Form */}
           <div className="login-form p-4 bg-white shadow position-relative z-2">

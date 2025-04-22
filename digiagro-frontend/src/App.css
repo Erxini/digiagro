@@ -90,10 +90,12 @@ body {
 .nav-link.btn.bg-secondary-gold {
   background-color: var(--secondary-gold) !important;
   color: var(--accent-brown) !important;
+  transition: color 0.3s, background-color 0.3s !important;
 }
 
 .nav-link.btn.bg-secondary-gold:hover {
   background-color: #b5881b !important; /* Equivalente a darken 10% */
+  color: rgb(195, 203, 194) !important; /* Texto blanco al hacer hover */
 }
 
 /* Asegurar que el fondo verde del header se aplique correctamente */

@@ -56,13 +56,16 @@ const Calendario = () => {
   return (
     <>
       <div style={{ marginTop: '130px', marginBottom: '2rem' }}>
-        <Container fluid className="px-5">
-          <Card className="shadow-sm mb-4 bg-secondary-light">
-            <Card.Body>
-              <h2 className="text-center mb-4 text-success fs-3">
+        <Container fluid className="px-5"
+          style={{ paddingLeft: '100px', paddingRight: '100px'}}>
+          <Card className="shadow-sm mb-4">
+            <Card.Header className="bg-success text-white">
+              <h2 className="mb-0 fs-4">
                 <i className="fas fa-seedling me-2"></i>
                 Calendario de Cultivos
               </h2>
+            </Card.Header>
+            <Card.Body>
               <p className="text-muted text-center mb-4">
                 Consulta información sobre periodos de siembra, abonado y recolección de diferentes cultivos.
                 <br />

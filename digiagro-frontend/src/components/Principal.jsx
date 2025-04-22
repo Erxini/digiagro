@@ -166,49 +166,49 @@ const Principal = () => {
     return (
       <Row className="mb-4">
         <Col md={3}>
-          <Card className="text-center mb-3 h-100" bg="success" text="white">
+          <Card className="text-center mb-3 h-100" style={{ backgroundColor: 'var(--success-green)', color: 'var(--text-light)' }}>
             <Card.Body>
               <Card.Title><i className="fas fa-seedling mr-2"></i> Cultivos</Card.Title>
               <h2>{cultivosData ? cultivosData.length : 0}</h2>
               <Card.Text>Total de cultivos registrados</Card.Text>
             </Card.Body>
-            <Card.Footer>
+            <Card.Footer style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
               <small>Última actualización: {lastUpdate}</small>
             </Card.Footer>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="text-center mb-3 h-100" bg="primary" text="white">
+          <Card className="text-center mb-3 h-100" style={{ backgroundColor: 'var(--info-blue)', color: 'var(--text-light)' }}>
             <Card.Body>
               <Card.Title><i className="fas fa-tint mr-2"></i> Riegos</Card.Title>
               <h2>{riegosData ? riegosData.length : 0}</h2>
               <Card.Text>Total de riegos registrados</Card.Text>
             </Card.Body>
-            <Card.Footer>
+            <Card.Footer style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
               <small>Última actualización: {lastUpdate}</small>
             </Card.Footer>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="text-center mb-3 h-100" bg="accent-brown" text="light">
+          <Card className="text-center mb-3 h-100" style={{ backgroundColor: 'var(--accent-brown)', color: 'var(--text-light)' }}>
             <Card.Body>
               <Card.Title><i className="fas fa-mountain mr-2"></i> Suelos</Card.Title>
               <h2>{sueloData ? sueloData.length : 0}</h2>
               <Card.Text>Total de análisis de suelo</Card.Text>
             </Card.Body>
-            <Card.Footer>
+            <Card.Footer style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
               <small>Última actualización: {lastUpdate}</small>
             </Card.Footer>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="text-center mb-3 h-100" bg="warning" text="dark">
+          <Card className="text-center mb-3 h-100" style={{ backgroundColor: 'var(--warning-yellow)', color: 'var(--text-dark)' }}>
             <Card.Body>
               <Card.Title><i className="fas fa-chart-line mr-2"></i> Producción</Card.Title>
               <h2>{produccionData ? produccionData.length : 0}</h2>
               <Card.Text>Total de registros de producción</Card.Text>
             </Card.Body>
-            <Card.Footer>
+            <Card.Footer style={{ backgroundColor: 'rgba(0,0,0,0.05)' }}>
               <small>Última actualización: {lastUpdate}</small>
             </Card.Footer>
           </Card>
