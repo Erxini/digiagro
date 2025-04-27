@@ -130,7 +130,7 @@ const Cuaderno = () => {
             <ul>
               <li>Cumplir con la normativa europea sobre trazabilidad agrícola</li>
               <li>Registrar el uso de productos fitosanitarios</li>
-              <li>Documentar prácticas de cultivo sostenibles</li>
+              <li>Documentar las prácticas de cultivo sostenibles</li>
               <li>Optimizar la gestión de recursos en la explotación</li>
             </ul>
             

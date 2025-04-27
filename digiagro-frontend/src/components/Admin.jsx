@@ -91,7 +91,7 @@ const Admin = () => {
                 style={{ backgroundColor: 'var(--success-green)', borderColor: 'var(--success-green)' }}
               >
                 <i className="fas fa-arrow-left me-2"></i>
-                Regresar a Principal
+                Volver al Inicio
               </Button>
             </Col>
           </Row>

@@ -13,6 +13,23 @@ const DocumentosTab = ({
   showAlert, 
   isLoading 
 }) => {
+  // Obtener la URL base del servidor desde las variables de entorno o usar un valor por defecto
+  const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  
+  // Función para construir la URL completa de un archivo
+  const getFullFileUrl = (relativePath) => {
+    if (!relativePath) return '#';
+    
+    // Si ya es una URL completa, devolverla tal cual
+    if (relativePath.startsWith('http')) {
+      return relativePath;
+    }
+    
+    // Asegurar que la ruta comienza con /
+    const normalizedPath = relativePath.startsWith('/') ? relativePath : `/${relativePath}`;
+    return `${apiBaseUrl}${normalizedPath}`;
+  };
+
   const [showModal, setShowModal] = useState(false);
   const [currentDocumento, setCurrentDocumento] = useState(null);
   const [formData, setFormData] = useState({
@@ -232,7 +249,7 @@ const DocumentosTab = ({
                     <td>
                       <div className="d-flex align-items-center">
                         <i className={`${getDocumentoIcon(doc.tipo_documento)} me-2`}></i>
-                        <a href={doc.archivo_url} target="_blank" rel="noopener noreferrer">
+                        <a href={getFullFileUrl(doc.archivo_url)} target="_blank" rel="noopener noreferrer">
                           {doc.nombre}
                         </a>
                       </div>
@@ -252,7 +269,15 @@ const DocumentosTab = ({
                       <Button variant="outline-danger" size="sm" className="me-1" onClick={() => handleDelete(doc.id_documento)}>
                         <i className="fas fa-trash-alt"></i>
                       </Button>
-                      <Button variant="outline-info" size="sm" as="a" href={doc.archivo_url} target="_blank" rel="noopener noreferrer">
+                      <Button 
+                        variant="outline-info" 
+                        size="sm" 
+                        as="a" 
+                        href={getFullFileUrl(doc.archivo_url)} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        download
+                      >
                         <i className="fas fa-download"></i>
                       </Button>
                     </td>

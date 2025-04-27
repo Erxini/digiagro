@@ -12,12 +12,13 @@ const InformesTab = ({
   isLoading 
 }) => {
   const [filtros, setFiltros] = useState({
-    fechaInicio: format(subMonths(new Date(), 3), 'yyyy-MM-dd'), // Último trimestre por defecto
+    fechaInicio: format(subMonths(new Date(), 3), 'yyyy-MM-dd'), 
     fechaFin: format(new Date(), 'yyyy-MM-dd'),
     tipoCultivo: '',
     tipoActividad: '',
     incluyeTratamientos: true,
-    incluyeDocumentos: true
+    incluyeDocumentos: true,
+    incluirActividades: true // Aseguramos que siempre incluya actividades por defecto
   });
 
   const [vistaPrevia, setVistaPrevia] = useState(null);
@@ -121,10 +122,18 @@ const InformesTab = ({
   const handleGenerarPDF = () => {
     if (!vistaPrevia) {
       handleVistaPrevia();
+      return; // Esperamos a que se genere la vista previa antes de continuar
     }
     
+    // Pasamos tanto los datos filtrados como los filtros de configuración
     generarInformePDF({
-      ...filtros,
+      incluirActividades: filtros.incluirActividades,
+      incluirTratamientos: filtros.incluyeTratamientos,
+      incluirDocumentos: filtros.incluyeDocumentos,
+      fechaInicio: filtros.fechaInicio,
+      fechaFin: filtros.fechaFin,
+      tipoCultivo: filtros.tipoCultivo,
+      tipoActividad: filtros.tipoActividad,
       datos: vistaPrevia
     });
   };
@@ -133,6 +142,7 @@ const InformesTab = ({
   const handleExportarExcel = () => {
     if (!vistaPrevia) {
       handleVistaPrevia();
+      return;
     }
     
     exportarExcel(vistaPrevia, `cuaderno_campo_${format(new Date(), 'yyyy-MM-dd')}`);
@@ -209,6 +219,16 @@ const InformesTab = ({
                   <Form.Group className="mb-3">
                     <Form.Check 
                       type="checkbox"
+                      id="incluye-actividades"
+                      label="Incluir actividades"
+                      name="incluirActividades"
+                      checked={filtros.incluirActividades}
+                      onChange={handleChange}
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Check 
+                      type="checkbox"
                       id="incluye-tratamientos"
                       label="Incluir tratamientos"
                       name="incluyeTratamientos"
@@ -255,7 +275,7 @@ const InformesTab = ({
                     <div>
                       <Button variant="success" size="sm" className="me-2" onClick={handleGenerarPDF}>
                         <i className="fas fa-file-pdf me-1"></i>
-                        Generar PDF
+                        Generar  PDF
                       </Button>
                       <Button variant="info" size="sm" onClick={handleExportarExcel}>
                         <i className="fas fa-file-excel me-1"></i>
@@ -276,7 +296,7 @@ const InformesTab = ({
                     <i className="fas fa-info-circle me-2"></i>
                     Selecciona filtros y presiona "Vista previa" para generar un informe
                   </Alert>
-                ) : vistaPrevia.totalActividades === 0 ? (
+                ) : vistaPrevia.totalActividades === 0 && (!filtros.incluyeTratamientos || vistaPrevia.totalTratamientos === 0) && (!filtros.incluyeDocumentos || vistaPrevia.totalDocumentos === 0) ? (
                   <Alert variant="warning">
                     <i className="fas fa-exclamation-triangle me-2"></i>
                     No se encontraron registros con los filtros seleccionados
@@ -293,10 +313,12 @@ const InformesTab = ({
                               {format(new Date(filtros.fechaInicio), 'dd/MM/yyyy', { locale: es })} - {format(new Date(filtros.fechaFin), 'dd/MM/yyyy', { locale: es })}
                             </td>
                           </tr>
-                          <tr>
-                            <th>Total de actividades</th>
-                            <td>{vistaPrevia.totalActividades}</td>
-                          </tr>
+                          {filtros.incluirActividades && (
+                            <tr>
+                              <th>Total de actividades</th>
+                              <td>{vistaPrevia.totalActividades}</td>
+                            </tr>
+                          )}
                           {filtros.incluyeTratamientos && (
                             <tr>
                               <th>Total de tratamientos</th>
@@ -319,7 +341,7 @@ const InformesTab = ({
                       </Table>
                     </div>
                     
-                    {vistaPrevia.totalActividades > 0 && (
+                    {filtros.incluirActividades && vistaPrevia.totalActividades > 0 && (
                       <div className="mb-4">
                         <h5>Actividades ({vistaPrevia.totalActividades})</h5>
                         <ListGroup variant="flush" className="border rounded mb-3">

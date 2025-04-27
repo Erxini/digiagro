@@ -371,16 +371,36 @@ export const useCuadernoCampo = () => {
   const generarInformePDF = async (filtros) => {
     try {
       console.log('Generando informe PDF con filtros:', filtros);
-      console.log('Datos de tratamientos para el PDF:', tratamientos);
-      console.log('Datos de documentos para el PDF:', documentos);
       
-      // Verificar si jsPDF está disponible
-      if (!window.jspdf || !window.jspdf.jsPDF) {
-        showAlert('Error al generar PDF: Librería jsPDF no disponible', 'warning');
-        return;
+      // Verificar que tenemos los datos filtrados
+      const actividadesFiltradas = filtros.datos ? filtros.datos.actividades : actividades;
+      const tratamientosFiltrados = filtros.datos ? filtros.datos.tratamientos : tratamientos;
+      const documentosFiltrados = filtros.datos ? filtros.datos.documentos : documentos;
+      
+      console.log('Actividades filtradas:', actividadesFiltradas.length);
+      console.log('Tratamientos filtrados:', tratamientosFiltrados.length);
+      console.log('Documentos filtrados:', documentosFiltrados.length);
+      
+      // Intentar importar jsPDF dinámicamente si no está disponible en window
+      let jsPDF;
+      if (window.jspdf && window.jspdf.jsPDF) {
+        jsPDF = window.jspdf.jsPDF;
+      } else {
+        try {
+          // Intentar importar la biblioteca
+          const jsPDFModule = await import('jspdf');
+          jsPDF = jsPDFModule.default;
+          
+          if (!jsPDF) {
+            showAlert('Error al cargar la librería jsPDF. Por favor, asegúrate de que esté instalada.', 'danger');
+            return;
+          }
+        } catch (err) {
+          showAlert('Error al cargar la librería jsPDF: ' + err.message, 'danger');
+          return;
+        }
       }
       
-      const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       
       // Fecha formateada para el informe (formato día/mes/año)
@@ -400,16 +420,70 @@ export const useCuadernoCampo = () => {
       
       let yPos = 50;
       
+      // Si se han solicitado actividades
+      if (filtros.incluirActividades || filtros.includeActividades) {
+        doc.setFontSize(16);
+        doc.text('Actividades registradas', 20, yPos);
+        yPos += 10;
+        
+        doc.setFontSize(10);
+        
+        if (actividadesFiltradas && actividadesFiltradas.length > 0) {
+          actividadesFiltradas.forEach(actividad => {
+            // Formatear la fecha como día/mes/año
+            const fecha = new Date(actividad.fecha);
+            const fechaAct = fecha.getDate() + '/' + (fecha.getMonth() + 1) + '/' + fecha.getFullYear();
+            
+            // Información principal de la actividad
+            doc.text('• ' + fechaAct + ' - ' + actividad.tarea + ' de ' + actividad.tipo_cultivo, 30, yPos);
+            yPos += 5;
+            
+            // Detalles adicionales de la actividad
+            if (actividad.parcela) {
+              doc.text('  Parcela: ' + actividad.parcela, 35, yPos);
+              yPos += 5;
+            }
+            
+            if (actividad.superficie) {
+              doc.text('  Superficie: ' + actividad.superficie + ' ha', 35, yPos);
+              yPos += 5;
+            }
+            
+            if (actividad.tiempo_dedicado) {
+              doc.text('  Tiempo: ' + actividad.tiempo_dedicado + ' horas', 35, yPos);
+              yPos += 5;
+            }
+            
+            if (actividad.observaciones) {
+              doc.text('  Observaciones: ' + actividad.observaciones, 35, yPos);
+              yPos += 5;
+            }
+            
+            yPos += 3; // Espacio entre actividades
+            
+            if (yPos > 280) {
+              doc.addPage();
+              yPos = 20;
+            }
+          });
+        } else {
+          doc.text("No hay actividades registradas", 30, yPos);
+          yPos += 6;
+        }
+        
+        yPos += 10;
+      }
+      
       // Si se han solicitado tratamientos
-      if (filtros.incluirTratamientos) {
+      if (filtros.incluyeTratamientos || filtros.incluirTratamientos) {
         doc.setFontSize(16);
         doc.text('Tratamientos aplicados', 20, yPos);
         yPos += 10;
         
         doc.setFontSize(10);
         
-        if (tratamientos && tratamientos.length > 0) {
-          tratamientos.forEach(tratamiento => {
+        if (tratamientosFiltrados && tratamientosFiltrados.length > 0) {
+          tratamientosFiltrados.forEach(tratamiento => {
             // Formatear la fecha como día/mes/año
             const fecha = new Date(tratamiento.fecha);
             const fechaTrat = fecha.getDate() + '/' + (fecha.getMonth() + 1) + '/' + fecha.getFullYear();
@@ -457,15 +531,15 @@ export const useCuadernoCampo = () => {
       }
       
       // Si se han solicitado documentos
-      if (filtros.incluirDocumentos) {
+      if (filtros.incluyeDocumentos || filtros.incluirDocumentos) {
         doc.setFontSize(16);
         doc.text('Documentos registrados', 20, yPos);
         yPos += 10;
         
         doc.setFontSize(10);
         
-        if (documentos && documentos.length > 0) {
-          documentos.forEach(documento => {
+        if (documentosFiltrados && documentosFiltrados.length > 0) {
+          documentosFiltrados.forEach(documento => {
             // Formatear la fecha como día/mes/año
             const fecha = new Date(documento.fecha_subida);
             const fechaDoc = fecha.getDate() + '/' + (fecha.getMonth() + 1) + '/' + fecha.getFullYear();
@@ -504,63 +578,6 @@ export const useCuadernoCampo = () => {
         yPos += 10;
       }
       
-      // Si se han solicitado actividades
-      if (filtros.incluirActividades) {
-        // Si ya hay contenido anterior, añadir espacio
-        if (filtros.incluirTratamientos || filtros.incluirDocumentos) {
-          yPos += 5;
-        }
-        
-        doc.setFontSize(16);
-        doc.text('Actividades registradas', 20, yPos);
-        yPos += 10;
-        
-        doc.setFontSize(10);
-        
-        if (actividades && actividades.length > 0) {
-          actividades.forEach(actividad => {
-            // Formatear la fecha como día/mes/año
-            const fecha = new Date(actividad.fecha);
-            const fechaAct = fecha.getDate() + '/' + (fecha.getMonth() + 1) + '/' + fecha.getFullYear();
-            
-            // Información principal de la actividad
-            doc.text('• ' + fechaAct + ' - ' + actividad.tarea + ' de ' + actividad.tipo_cultivo, 30, yPos);
-            yPos += 5;
-            
-            // Detalles adicionales de la actividad
-            if (actividad.parcela) {
-              doc.text('  Parcela: ' + actividad.parcela, 35, yPos);
-              yPos += 5;
-            }
-            
-            if (actividad.superficie) {
-              doc.text('  Superficie: ' + actividad.superficie + ' ha', 35, yPos);
-              yPos += 5;
-            }
-            
-            if (actividad.tiempo_dedicado) {
-              doc.text('  Tiempo: ' + actividad.tiempo_dedicado + ' horas', 35, yPos);
-              yPos += 5;
-            }
-            
-            if (actividad.observaciones) {
-              doc.text('  Observaciones: ' + actividad.observaciones, 35, yPos);
-              yPos += 5;
-            }
-            
-            yPos += 3; // Espacio entre actividades
-            
-            if (yPos > 280) {
-              doc.addPage();
-              yPos = 20;
-            }
-          });
-        } else {
-          doc.text("No hay actividades registradas", 30, yPos);
-          yPos += 6;
-        }
-      }
-      
       // Añadir pie de página
       const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
@@ -577,7 +594,7 @@ export const useCuadernoCampo = () => {
       return fileName;
     } catch (error) {
       console.error('Error al generar informe PDF:', error);
-      showAlert('Error al generar el informe PDF. Asegúrate de tener instalada la librería jsPDF.', 'danger');
+      showAlert('Error al generar el informe PDF: ' + error.message, 'danger');
       throw error;
     }
   };
@@ -587,113 +604,140 @@ export const useCuadernoCampo = () => {
     try {
       console.log('Exportando datos a Excel:', datos);
       
-      // Verificar si XLSX está disponible
-      if (!window.XLSX) {
-        showAlert('Error al exportar a Excel: Librería XLSX no disponible', 'warning');
+      // Intentar importar la librería xlsx dinámicamente si no está disponible en window
+      let XLSX;
+      if (window.XLSX) {
+        XLSX = window.XLSX;
+      } else {
+        try {
+          // Intentar importar la biblioteca
+          const XLSXModule = await import('xlsx');
+          XLSX = XLSXModule.default;
+          
+          if (!XLSX) {
+            showAlert('Error al cargar la librería XLSX. Por favor, asegúrate de que esté instalada.', 'danger');
+            return;
+          }
+        } catch (err) {
+          showAlert('Error al cargar la librería XLSX: ' + err.message + '. Instalando: npm install xlsx', 'danger');
+          return;
+        }
+      }
+      
+      // Obtenemos los datos filtrados
+      const actividadesFiltradas = datos.actividades || [];
+      const tratamientosFiltrados = datos.tratamientos || [];
+      const documentosFiltrados = datos.documentos || [];
+      
+      console.log('Actividades para Excel:', actividadesFiltradas.length);
+      console.log('Tratamientos para Excel:', tratamientosFiltrados.length);
+      console.log('Documentos para Excel:', documentosFiltrados.length);
+      
+      // Crear un nuevo libro de trabajo
+      const workbook = XLSX.utils.book_new();
+      
+      // Agregar hojas según los datos disponibles
+      
+      // Hoja de actividades
+      if (actividadesFiltradas && actividadesFiltradas.length > 0) {
+        const actividadesData = actividadesFiltradas.map(act => ({
+          Fecha: new Date(act.fecha).toLocaleDateString('es-ES'),
+          Tarea: act.tarea || '',
+          'Tipo de Cultivo': act.tipo_cultivo || '',
+          Parcela: act.parcela || '-',
+          'Superficie (ha)': act.superficie || '-',
+          'Tiempo Dedicado (horas)': act.tiempo_dedicado || '-',
+          'Personal Involucrado': act.personal_involucrado || '-',
+          Observaciones: act.observaciones || ''
+        }));
+        
+        // Crear hoja y añadirla al libro
+        const wsActividades = XLSX.utils.json_to_sheet(actividadesData);
+        XLSX.utils.book_append_sheet(workbook, wsActividades, 'Actividades');
+      }
+      
+      // Hoja de tratamientos
+      if (tratamientosFiltrados && tratamientosFiltrados.length > 0) {
+        const tratamientosData = tratamientosFiltrados.map(trat => ({
+          Fecha: new Date(trat.fecha).toLocaleDateString('es-ES'),
+          Producto: trat.producto || '',
+          'Tipo de Producto': trat.tipo_producto || '',
+          'Cantidad Aplicada': trat.cantidad_aplicada && trat.unidad_medida ? 
+            `${trat.cantidad_aplicada} ${trat.unidad_medida}` : '-',
+          'Superficie Tratada': trat.superficie_tratada && trat.unidad_superficie ? 
+            `${trat.superficie_tratada} ${trat.unidad_superficie}` : '-',
+          'Técnico Responsable': trat.tecnico_responsable || '-',
+          Observaciones: trat.observaciones || ''
+        }));
+        const wsTratamientos = XLSX.utils.json_to_sheet(tratamientosData);
+        XLSX.utils.book_append_sheet(workbook, wsTratamientos, 'Tratamientos');
+      }
+      
+      // Hoja de documentos
+      if (documentosFiltrados && documentosFiltrados.length > 0) {
+        const documentosData = documentosFiltrados.map(doc => ({
+          Nombre: doc.nombre || '',
+          'Tipo de Documento': doc.tipo_documento || '',
+          'Fecha de Subida': new Date(doc.fecha_subida).toLocaleDateString('es-ES'),
+          Descripción: doc.descripcion || '',
+          'Archivo': doc.archivo_url ? doc.archivo_url.split('/').pop() : ''
+        }));
+        const wsDocumentos = XLSX.utils.json_to_sheet(documentosData);
+        XLSX.utils.book_append_sheet(workbook, wsDocumentos, 'Documentos');
+      }
+      
+      // Si no hay datos en ninguna hoja, mostrar un error
+      if (workbook.SheetNames.length === 0) {
+        showAlert('No hay datos para exportar a Excel', 'warning');
         return;
       }
       
-      const XLSX = window.XLSX;
+      // Generar nombre de archivo con extensión .xlsx
+      let excelFileName = nombreArchivo || `cuaderno_campo_${new Date().toISOString().split('T')[0]}`;
       
-      // Preparar datos para exportación
-      let datosExportar = [];
-      
-      if (datos.tipo === 'actividades') {
-        // Formatear actividades para Excel
-        datosExportar = actividades.map(act => ({
-          Fecha: new Date(act.fecha).toLocaleDateString('es-ES'),
-          Tarea: act.tarea,
-          'Tipo de Cultivo': act.tipo_cultivo,
-          Parcela: act.parcela || 'No especificado',
-          'Superficie (ha)': act.superficie || 'No especificado',
-          'Tiempo Dedicado (horas)': act.tiempo_dedicado || 'No especificado',
-          'Personal Involucrado': act.personal_involucrado || 'No especificado',
-          Observaciones: act.observaciones || ''
-        }));
-      } else if (datos.tipo === 'tratamientos') {
-        // Formatear tratamientos para Excel
-        datosExportar = tratamientos.map(trat => ({
-          Fecha: new Date(trat.fecha).toLocaleDateString('es-ES'),
-          Producto: trat.producto,
-          'Tipo de Producto': trat.tipo_producto,
-          'Cantidad Aplicada': `${trat.cantidad_aplicada} ${trat.unidad_medida}`,
-          'Superficie Tratada': `${trat.superficie_tratada} ${trat.unidad_superficie}`,
-          'Técnico Responsable': trat.tecnico_responsable || 'No especificado',
-          Observaciones: trat.observaciones || ''
-        }));
-      } else if (datos.tipo === 'documentos') {
-        // Formatear documentos para Excel
-        datosExportar = documentos.map(doc => ({
-          Nombre: doc.nombre,
-          'Tipo de Documento': doc.tipo_documento,
-          'Fecha de Subida': new Date(doc.fecha_subida).toLocaleDateString('es-ES'),
-          Descripción: doc.descripcion || ''
-        }));
-      } else if (datos.tipo === 'todo') {
-        // Crear múltiples hojas para un reporte completo
-        const workbook = XLSX.utils.book_new();
-        
-        // Hoja de actividades
-        if (actividades.length > 0) {
-          const actividadesData = actividades.map(act => ({
-            Fecha: new Date(act.fecha).toLocaleDateString('es-ES'),
-            Tarea: act.tarea,
-            'Tipo de Cultivo': act.tipo_cultivo,
-            Parcela: act.parcela || 'No especificado',
-            Observaciones: act.observaciones || ''
-          }));
-          const wsActividades = XLSX.utils.json_to_sheet(actividadesData);
-          XLSX.utils.book_append_sheet(workbook, wsActividades, 'Actividades');
-        }
-        
-        // Hoja de tratamientos
-        if (tratamientos.length > 0) {
-          const tratamientosData = tratamientos.map(trat => ({
-            Fecha: new Date(trat.fecha).toLocaleDateString('es-ES'),
-            Producto: trat.producto,
-            'Tipo de Producto': trat.tipo_producto,
-            'Cantidad Aplicada': `${trat.cantidad_aplicada} ${trat.unidad_medida}`,
-            Observaciones: trat.observaciones || ''
-          }));
-          const wsTratamientos = XLSX.utils.json_to_sheet(tratamientosData);
-          XLSX.utils.book_append_sheet(workbook, wsTratamientos, 'Tratamientos');
-        }
-        
-        // Hoja de documentos
-        if (documentos.length > 0) {
-          const documentosData = documentos.map(doc => ({
-            Nombre: doc.nombre,
-            'Tipo de Documento': doc.tipo_documento,
-            'Fecha de Subida': new Date(doc.fecha_subida).toLocaleDateString('es-ES'),
-            Descripción: doc.descripcion || ''
-          }));
-          const wsDocumentos = XLSX.utils.json_to_sheet(documentosData);
-          XLSX.utils.book_append_sheet(workbook, wsDocumentos, 'Documentos');
-        }
-        
-        // Guardar libro completo
-        const excelFileName = nombreArchivo || `cuaderno_campo_completo_${new Date().toISOString().split('T')[0]}.xlsx`;
-        XLSX.writeFile(workbook, excelFileName);
-        showAlert('Archivo Excel generado correctamente', 'success');
-        return excelFileName;
+      // Asegurarnos de que el nombre del archivo tenga la extensión .xlsx
+      if (!excelFileName.endsWith('.xlsx')) {
+        excelFileName += '.xlsx';
       }
       
-      // En caso de un solo tipo de datos (no todo)
-      if (datos.tipo !== 'todo') {
-        // Crear libro y hoja
-        const workbook = XLSX.utils.book_new();
-        const worksheet = XLSX.utils.json_to_sheet(datosExportar);
-        XLSX.utils.book_append_sheet(workbook, worksheet, datos.tipo.charAt(0).toUpperCase() + datos.tipo.slice(1));
-        
-        // Guardar archivo
-        const excelFileName = nombreArchivo || `${datos.tipo}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      try {
+        // Intentar generar y descargar el archivo
         XLSX.writeFile(workbook, excelFileName);
         showAlert('Archivo Excel generado correctamente', 'success');
         return excelFileName;
+      } catch (writeError) {
+        console.error('Error al escribir el archivo Excel:', writeError);
+        
+        // Plan B: Usar Blob y FileSaver para navegadores que no soportan writeFile directamente
+        try {
+          const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+          const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          
+          // Crear un enlace temporal para la descarga
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = excelFileName; // Ya tiene la extensión .xlsx garantizada
+          document.body.appendChild(a);
+          a.click();
+          
+          // Limpiar
+          setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+          }, 0);
+          
+          showAlert('Archivo Excel generado correctamente', 'success');
+          return excelFileName;
+        } catch (blobError) {
+          console.error('Error al crear blob para Excel:', blobError);
+          showAlert('No se pudo generar el archivo Excel: ' + blobError.message, 'danger');
+          throw blobError;
+        }
       }
     } catch (error) {
       console.error('Error al exportar a Excel:', error);
-      showAlert('Error al exportar a Excel. Asegúrate de tener instaladas las librerías necesarias.', 'danger');
+      showAlert('Error al exportar a Excel: ' + error.message, 'danger');
       throw error;
     }
   };

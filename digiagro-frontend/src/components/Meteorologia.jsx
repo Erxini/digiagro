@@ -143,7 +143,7 @@ const Meteorologia = () => {
   // Basado en los códigos WMO (World Meteorological Organization)
   const getWeatherDescription = (code) => {
     const weatherCodes = {
-      0: 'Despejado',
+      0: 'Soleado',
       1: 'Mayormente despejado',
       2: 'Parcialmente nublado',
       3: 'Nublado',
@@ -421,9 +421,7 @@ const Meteorologia = () => {
             </Col>
           </Row>
 
-          {/* NUEVA ESTRUCTURA: Mapa y Condiciones actuales abajo (dos columnas) */}
           <Row>
-            {/* Mapa a la izquierda (50%) */}
             <Col md={6} className="mb-4">
               <Card className="shadow-sm h-100">
                 <Card.Header className="bg-light">
@@ -433,7 +431,6 @@ const Meteorologia = () => {
                   </h5>
                 </Card.Header>
                 <Card.Body className="p-0">
-                  {/* Mapa de Leaflet */}
                   <div 
                     ref={mapContainerRef} 
                     style={{ height: '400px', width: '100%', borderRadius: '0 0 0.375rem 0.375rem' }}
@@ -447,7 +444,6 @@ const Meteorologia = () => {
               </Card>
             </Col>
             
-            {/* Condiciones actuales a la derecha (50%) */}
             <Col md={6} className="mb-4">
               <Card className="shadow-sm h-100">
                 <Card.Header className="bg-light d-flex justify-content-between align-items-center">

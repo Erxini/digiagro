@@ -2,6 +2,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
 const express = require("express");
 const cors = require('cors');
+const path = require('path');
 const app = express();
 require('dotenv').config();
 
@@ -14,6 +15,9 @@ app.use(cors({origin: '*'})); //OJo cambiar en producción!!
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Configurar la carpeta uploads para servir archivos estáticos
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const apiroutes = require("./routes/apiRouter.js");
 app.use("/digiagro", apiroutes);
