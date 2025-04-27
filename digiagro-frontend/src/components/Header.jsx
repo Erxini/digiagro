@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import logo from '../assets/logo_10.png';
 import '../App.css'; 
 
@@ -8,11 +8,31 @@ function Header() {
   const location = useLocation();
   const { isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [authState, setAuthState] = useState(isAuthenticated);
   
   // Determinar texto y acción del botón basado en si el usuario está autenticado
-  const buttonText = isAuthenticated ? 'Salir' : 'Login';
-  const buttonAction = isAuthenticated ? logout : null;
-  const buttonLink = isAuthenticated ? '/' : '/login';
+  const buttonText = authState ? 'Salir' : 'Acceso';
+  const buttonAction = authState ? logout : null;
+  const buttonLink = authState ? '/' : '/login';
+
+  // Efecto para verificar el estado de autenticación en cada render
+  useEffect(() => {
+    setAuthState(isAuthenticated);
+    
+    // Función para manejar cambios en el estado de autenticación
+    const handleAuthChange = (event) => {
+      console.log("Evento de autenticación recibido:", event.detail);
+      setAuthState(event.detail.isAuthenticated);
+    };
+    
+    // Suscribirse al evento personalizado
+    window.addEventListener('authStateChanged', handleAuthChange);
+    
+    // Limpieza al desmontar
+    return () => {
+      window.removeEventListener('authStateChanged', handleAuthChange);
+    };
+  }, [isAuthenticated]);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);

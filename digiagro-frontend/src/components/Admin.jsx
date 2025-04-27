@@ -1,9 +1,11 @@
 import React from 'react';
 import { Container, Row, Col, Button, Card, Alert } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import UsuariosList from './UsuariosList';
 import { useAdmin } from '../hooks/useAdmin';
 
 const Admin = () => {
+  const navigate = useNavigate();
   const { 
     usersData,
     cultivosData, 
@@ -21,6 +23,11 @@ const Admin = () => {
     changeSection,
     setAlertMessage
   } = useAdmin();
+
+  // Función para volver a la pantalla principal
+  const volverAPrincipal = () => {
+    navigate('/principal');
+  };
 
   // Renderizado de las cards de estadísticas
   const renderStats = () => {
@@ -77,6 +84,15 @@ const Admin = () => {
                 <i className="fas fa-calendar me-2"></i>
                 {new Date().toLocaleDateString()}
               </p>
+              <Button 
+                variant="primary" 
+                className="mt-2"
+                onClick={volverAPrincipal}
+                style={{ backgroundColor: 'var(--success-green)', borderColor: 'var(--success-green)' }}
+              >
+                <i className="fas fa-arrow-left me-2"></i>
+                Regresar a Principal
+              </Button>
             </Col>
           </Row>
         </Card.Body>

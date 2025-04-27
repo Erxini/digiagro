@@ -74,26 +74,46 @@ export const useAuth = () => {
 
   // Comprobar si hay un usuario y token en localStorage al cargar la página
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-    
-    if (storedUser && storedToken) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        setToken(storedToken);
-        setIsAuthenticated(true);
-        
-        // Verificar si userData tiene las propiedades esperadas
-        if (!userData.nombre || !userData.email || !userData.rol) {
-          console.warn('Datos de usuario incompletos en localStorage');
+    const checkAuthState = () => {
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('token');
+      
+      if (storedUser && storedToken) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+          setToken(storedToken);
+          setIsAuthenticated(true);
+          
+          // Verificar si userData tiene las propiedades esperadas
+          if (!userData.nombre || !userData.email || !userData.rol) {
+            console.warn('Datos de usuario incompletos en localStorage');
+          }
+        } catch (err) {
+          console.error('Error al recuperar datos del usuario:', err);
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
         }
-      } catch (err) {
-        console.error('Error al recuperar datos del usuario:', err);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+      } else {
+        // Asegurarnos de que isAuthenticated sea false si no hay datos en localStorage
+        setIsAuthenticated(false);
       }
-    }
+    };
+    
+    // Verificar el estado inicial
+    checkAuthState();
+    
+    // También podemos escuchar cambios en el localStorage
+    const handleStorageChange = () => {
+      checkAuthState();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   // Función para iniciar sesión
@@ -120,6 +140,12 @@ export const useAuth = () => {
         setUser(response.usuario);
         setToken(response.token);
         setIsAuthenticated(true);
+        
+        // Emitir evento personalizado para notificar cambios en la autenticación
+        const authEvent = new CustomEvent('authStateChanged', { 
+          detail: { isAuthenticated: true } 
+        });
+        window.dispatchEvent(authEvent);
         
         // Redirigir después de inicio de sesión exitoso
         navigate('/principal');
@@ -182,6 +208,13 @@ export const useAuth = () => {
     setUser(null);
     setToken(null);
     setIsAuthenticated(false);
+    
+    // Emitir evento personalizado para notificar cambios en la autenticación
+    const authEvent = new CustomEvent('authStateChanged', { 
+      detail: { isAuthenticated: false } 
+    });
+    window.dispatchEvent(authEvent);
+    
     navigate('/');
   };
 

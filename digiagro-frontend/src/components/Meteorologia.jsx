@@ -317,7 +317,7 @@ const Meteorologia = () => {
                 <Card.Header className="bg-light">
                   <h5 className="mb-0">
                     <i className="fas fa-calendar-alt me-2"></i>
-                    Pronóstico 5 días
+                    Pronóstico 7 días
                   </h5>
                 </Card.Header>
                 <Card.Body className="p-0">
@@ -351,12 +351,7 @@ const Meteorologia = () => {
                         ))}
                       </div>
                       
-                      <div className="p-3">
-                        <h6>
-                          <i className="fas fa-calendar-day me-2"></i>
-                          {getDayName(forecastData.time[selectedDay])}
-                        </h6>
-                        
+                      <div className="p-3">                    
                         <div className="d-flex align-items-center mb-3">
                           <i className={`${getWeatherIcon(forecastData.weathercode[selectedDay])} fa-2x me-3`}></i>
                           <div>
