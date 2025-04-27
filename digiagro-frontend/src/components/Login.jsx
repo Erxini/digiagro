@@ -9,7 +9,10 @@ function Login() {
   const [activeForm, setActiveForm] = useState('login'); // Cambiamos el nombre del estado para reflejar mejor su propósito
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 800);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const { register, login, authError, loginFieldErrors } = useAuth(); // Añadido loginFieldErrors
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetEmailError, setResetEmailError] = useState('');
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const { register, login, recuperarPassword, authError, loginFieldErrors } = useAuth(); // Añadido recuperarPassword
   
   // Función para actualizar el estado isMobile cuando cambia el tamaño de la pantalla
   useEffect(() => {
@@ -83,7 +86,43 @@ function Login() {
     
     return errors;
   };
-  
+
+  // Validar email para recuperación de contraseña
+  const validateResetEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email?.trim()) {
+      return 'El email es obligatorio';
+    } else if (!emailRegex.test(email.trim())) {
+      return 'Ingrese un email válido';
+    }
+    return '';
+  };
+
+  // Manejar el envío del formulario de recuperación de contraseña
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    
+    const error = validateResetEmail(resetEmail);
+    if (error) {
+      setResetEmailError(error);
+      return;
+    }
+    
+    try {
+      const response = await recuperarPassword(resetEmail);
+      if (response && response.success) {
+        setResetSuccess(true);
+        // Mostrar mensaje de éxito durante 3 segundos y luego limpiar
+        setTimeout(() => {
+          setResetSuccess(false);
+          setResetEmail('');
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error al solicitar recuperación de contraseña:', error);
+    }
+  };
+
   // Uso de useFormValidation para el formulario de registro
   const {
     values: registerValues,
@@ -207,6 +246,40 @@ function Login() {
               </div>
               <button type="submit" className="btn btn-success">Entrar</button>
             </form>
+            
+            {/* Sección de recuperación de contraseña */}
+            <div className="mt-4 pt-3 border-top text-center">
+              <p className="mb-2">¿Has olvidado tu contraseña?</p>
+              
+              <form onSubmit={handleResetPassword} className="mb-2">
+                <div className="input-group mb-2">
+                  <input
+                    type="email"
+                    className={`form-control ${resetEmailError ? 'is-invalid' : ''}`}
+                    placeholder="Correo electrónico"
+                    value={resetEmail}
+                    onChange={(e) => {
+                      setResetEmail(e.target.value);
+                      setResetEmailError('');
+                    }}
+                  />
+                  <button type="submit" className="btn btn-success">
+                    Enviar
+                  </button>
+                </div>
+                {resetEmailError && (
+                  <div className="text-danger small text-start" style={{ marginTop: '-5px' }}>
+                    {resetEmailError}
+                  </div>
+                )}
+              </form>
+              
+              {resetSuccess && (
+                <div className="alert alert-success py-2 small" role="alert">
+                  Si el correo existe, recibirás una nueva contraseña en breve.
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Register Form */}
@@ -303,7 +376,6 @@ function Login() {
             </form>
           </div>
 
-          {/* Overlay con clases dinámicas según el estado y dispositivo */}
           <div 
             className={`overlay ${getOverlayClass()}`} 
             onClick={toggleForm}

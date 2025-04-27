@@ -9,6 +9,16 @@ import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import FileSaver from 'file-saver';
 
+// Limpiar localStorage al cargar la aplicación para forzar el inicio de sesión
+// Solo mantener configuraciones que no sean de autenticación
+const cleanAuthentication = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+};
+
+// Llamar a la función de limpieza al cargar la página
+cleanAuthentication();
+
 // Exponer las librerías globalmente para que puedan ser utilizadas por otros componentes
 window.jspdf = { jsPDF };
 window.XLSX = XLSX;

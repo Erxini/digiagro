@@ -8,16 +8,20 @@ function Header() {
   const location = useLocation();
   const { isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [authState, setAuthState] = useState(isAuthenticated);
+  // Inicializar authState como false para mostrar siempre "Acceso" al cargar la página
+  const [authState, setAuthState] = useState(false);
   
   // Determinar texto y acción del botón basado en si el usuario está autenticado
   const buttonText = authState ? 'Salir' : 'Acceso';
   const buttonAction = authState ? logout : null;
   const buttonLink = authState ? '/' : '/login';
 
-  // Efecto para verificar el estado de autenticación en cada render
+  // Efecto para verificar el estado de autenticación después de la carga inicial
   useEffect(() => {
-    setAuthState(isAuthenticated);
+    // Pequeño retraso para asegurar que la autenticación se verifique después de la carga inicial
+    const timer = setTimeout(() => {
+      setAuthState(isAuthenticated);
+    }, 100);
     
     // Función para manejar cambios en el estado de autenticación
     const handleAuthChange = (event) => {
@@ -30,6 +34,7 @@ function Header() {
     
     // Limpieza al desmontar
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('authStateChanged', handleAuthChange);
     };
   }, [isAuthenticated]);

@@ -2,9 +2,11 @@ const Usuario = require("../database/models/usuarios");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
+const enviarCorreo = require("../email");
+const crypto = require("crypto");
 
 // Definir una clave secreta para JWT (en producción, guarda esto en variables de entorno)
-const JWT_SECRET = "digiagro_secret_key"; // ¡Cambia esto en producción!
+const JWT_SECRET = process.env.JWT_SECRET || "digiagro_secret_key";
 const SALT_ROUNDS = 10; // Número de rondas para el algoritmo de hashing
 
 // 1.Obtener todos los usuarios
@@ -198,6 +200,48 @@ const countUsuarios = async () => {
   }
 };
 
+// 10. Recuperar contraseña
+const recuperarPassword = async (email) => {
+  try {
+    // Buscar usuario por email
+    const usuario = await Usuario.findOne({ where: { email: email } });
+    
+    if (!usuario) {
+      throw new Error("No existe ningún usuario con ese correo electrónico");
+    }
+    
+    // Generar nueva contraseña aleatoria
+    const nuevaPassword = crypto.randomBytes(4).toString('hex');
+    
+    // Hashear la nueva contraseña
+    const hashedPassword = await bcrypt.hash(nuevaPassword, SALT_ROUNDS);
+    
+    // Actualizar la contraseña del usuario
+    await usuario.update({ password: hashedPassword });
+    
+    // Enviar correo con la nueva contraseña
+    const resultado = await enviarCorreo(email, nuevaPassword);
+    
+    if (!resultado.success) {
+      console.error("Error al enviar correo:", resultado.error);
+      throw new Error("Error al enviar el correo de recuperación");
+    }
+    
+    // Si estamos en desarrollo, mostrar la URL de vista previa del correo
+    if (resultado.previewUrl) {
+      console.log("⭐ ENLACE PARA VER EL CORREO (desarrollo): ", resultado.previewUrl);
+    }
+    
+    return {
+      success: true,
+      mensaje: "Contraseña actualizada y correo enviado correctamente",
+      previewUrl: resultado.previewUrl || null
+    };
+  } catch (error) {
+    throw new Error("Error al recuperar la contraseña: " + error.message);
+  }
+};
+
 module.exports = { 
   getAllUsuarios,
   getUsuarioById,
@@ -209,5 +253,6 @@ module.exports = {
   deleteUsuario,
   deleteAllUsuarios,
   verifyToken,
-  countUsuarios
+  countUsuarios,
+  recuperarPassword
 };

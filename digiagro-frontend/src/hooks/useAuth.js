@@ -37,6 +37,20 @@ export const useAuth = () => {
     }
   };
 
+  // Función para guardar la marca de tiempo al cerrar la sesión
+  const setLogoutTimestamp = () => {
+    const timestamp = new Date().getTime();
+    sessionStorage.setItem('logoutTimestamp', timestamp);
+  };
+
+  // Función para comprobar si la sesión debe considerarse expirada
+  const isSessionExpired = () => {
+    // La sesión se considera expirada si:
+    // 1. No hay datos en localStorage, o
+    // 2. La página fue cerrada anteriormente (hay una marca de tiempo en sessionStorage)
+    return sessionStorage.getItem('logoutTimestamp') !== null;
+  };
+
   // Efecto para configurar los listeners de eventos que reinician el temporizador
   useEffect(() => {
     // Eventos de usuario que indican actividad
@@ -72,9 +86,50 @@ export const useAuth = () => {
     }
   }, [isAuthenticated]); // Este efecto se ejecuta cuando cambia isAuthenticated
 
+  // Efecto para manejar el cierre de la ventana/pestaña
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (isAuthenticated) {
+        // Establecer la marca de tiempo cuando el usuario cierra la pestaña/navegador
+        setLogoutTimestamp();
+      }
+    };
+
+    // Registrar el evento para cuando el usuario cierre la ventana
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isAuthenticated]);
+
+  // Efecto para cerrar sesión al recargar la página si se detecta que fue cerrada anteriormente
+  useEffect(() => {
+    // Verificar si la sesión debe ser invalidada al cargar
+    if (isSessionExpired()) {
+      // Limpiar la marca de tiempo
+      sessionStorage.removeItem('logoutTimestamp');
+      
+      // Si teníamos una sesión activa, cerrarla
+      if (localStorage.getItem('token') && localStorage.getItem('user')) {
+        console.log('Sesión cerrada debido a cierre previo de la página');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        setUser(null);
+        setToken(null);
+        setIsAuthenticated(false);
+      }
+    }
+  }, []);
+
   // Comprobar si hay un usuario y token en localStorage al cargar la página
   useEffect(() => {
     const checkAuthState = () => {
+      // Si la sesión está marcada como expirada, no restaurar datos
+      if (isSessionExpired()) {
+        return;
+      }
+      
       const storedUser = localStorage.getItem('user');
       const storedToken = localStorage.getItem('token');
       
@@ -205,6 +260,7 @@ export const useAuth = () => {
     
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    sessionStorage.removeItem('logoutTimestamp'); // Limpiar la marca de cierre
     setUser(null);
     setToken(null);
     setIsAuthenticated(false);
@@ -223,16 +279,30 @@ export const useAuth = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
+  // Función para recuperar contraseña
+  const recuperarPassword = async (email) => {
+    setAuthError(null);
+    
+    try {
+      const response = await post('usuarios/recuperar-password', { email });
+      return response;
+    } catch (err) {
+      setAuthError(error || 'Error al procesar la solicitud');
+      return false;
+    }
+  };
+
   return {
     user,
     token,
     isAuthenticated,
     authError,
-    loginFieldErrors, // Exportar el nuevo estado
+    loginFieldErrors,
     login,
     register,
     logout,
+    recuperarPassword,
     getAuthHeader,
-    resetInactivityTimer // Exportamos esta función para poder usarla desde fuera si es necesario
+    resetInactivityTimer
   };
 };
