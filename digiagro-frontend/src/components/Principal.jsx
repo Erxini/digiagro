@@ -5,6 +5,7 @@ import CultivosList from './CultivosList';
 import ProduccionList from './ProduccionList';
 import RiegosList from './RiegosList';
 import SuelosList from './SuelosList';
+import Perfil from './Perfil';
 import { usePrincipal } from '../hooks/usePrincipal';
 import { useApi } from '../hooks/useApi';
 import { useAuth } from '../hooks/useAuth';
@@ -34,6 +35,7 @@ const Principal = () => {
   const [filteredProduccionData, setFilteredProduccionData] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null);
   const [isFiltering, setIsFiltering] = useState(false);
+  const [showPerfil, setShowPerfil] = useState(false);
 
   const { get } = useApi();
   const navigate = useNavigate();
@@ -69,6 +71,16 @@ const Principal = () => {
     // Si estamos mostrando el cuaderno, desactivar el componente actual
     if (!mostrarCuadernoCampo) {
       changeSection(null);
+    }
+  };
+
+  // Función para mostrar/ocultar el perfil
+  const togglePerfil = () => {
+    setShowPerfil(!showPerfil);
+    // Si estamos mostrando el perfil, desactivar el componente actual y ocultar cuaderno
+    if (!showPerfil) {
+      changeSection(null);
+      setMostrarCuadernoCampo(false);
     }
   };
 
@@ -219,6 +231,10 @@ const Principal = () => {
 
   // Renderizado condicional según la sección activa
   const renderContent = () => {
+    if (showPerfil) {
+      return <Perfil onClose={() => setShowPerfil(false)} />;
+    }
+    
     switch (activeSection) {
       case 'cultivos':
         return (
@@ -287,17 +303,29 @@ const Principal = () => {
                 <i className="fas fa-calendar me-2"></i>
                 {new Date().toLocaleDateString()}
               </p>
-              {/* Botón "Administrar Usuarios" solo visible para administradores */}
-              {localStorage.getItem('user') && JSON.parse(localStorage.getItem('user')).rol === 'Admin' && (
+              <div>
+                {/* Botón "Administrar Usuarios" solo visible para administradores */}
+                {localStorage.getItem('user') && JSON.parse(localStorage.getItem('user')).rol === 'Admin' && (
+                  <Button 
+                    variant="danger" 
+                    className="mt-2 me-2"
+                    onClick={() => navigate('/admin')}
+                  >
+                    <i className="fas fa-users-cog me-2"></i>
+                    Administrar Usuarios
+                  </Button>
+                )}
+                
+                {/* Botón "Mi Perfil" visible para todos los usuarios */}
                 <Button 
-                  variant="danger" 
+                  variant={showPerfil ? "primary" : "outline-primary"}
                   className="mt-2"
-                  onClick={() => navigate('/admin')}
+                  onClick={togglePerfil}
                 >
-                  <i className="fas fa-users-cog me-2"></i>
-                  Administrar Usuarios
+                  <i className="fas fa-user-circle me-2"></i>
+                  Mi Perfil
                 </Button>
-              )}
+              </div>
             </Col>
           </Row>
         </Card.Body>
@@ -318,208 +346,126 @@ const Principal = () => {
         </div>
       ) : (
         <>
-          {renderStats()}
+          {!showPerfil && renderStats()}
           
-          {/* NUEVA UBICACIÓN: Capa de filtros entre estadísticas y botones de navegación */}
-          <Card className="shadow-sm mb-4 border-warning">
-            <Card.Header className="bg-warning bg-opacity-75 d-flex justify-content-between align-items-center">
-              <h5 className="mb-0 text-dark">
-                <i className="fas fa-filter me-2"></i>
-                Filtros de Producción
-              </h5>
-              <Button 
-                variant={showFilters ? "outline-dark" : "dark"} 
-                size="sm" 
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
-              </Button>
-            </Card.Header>
-            
-            {showFilters && (
-              <Card.Body>
-                {activeFilter && (
-                  <div className="mb-3">
-                    <Badge bg="warning" className="p-2 mb-3">
-                      Filtro activo: {getNombreFiltro(activeFilter)}
-                      {activeFilter === 'cultivo' && <span className="ms-1">ID: {cultivoFilter}</span>}
-                      {activeFilter === 'fecha' && <span className="ms-1">Fecha: {fechaFilter}</span>}
-                      {activeFilter === 'calidad' && <span className="ms-1">Valor: {calidadFilter}</span>}
-                      {activeFilter === 'cantidad' && <span className="ms-1">Cantidad: {cantidadFilter} kg</span>}
-                      {activeFilter === 'cultivoCalidad' && (
-                        <span className="ms-1">
-                          ID: {cultivoFilter}, Calidad: {calidadFilter}
-                        </span>
-                      )}
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="ms-2 p-0 text-dark"
-                        onClick={limpiarFiltros}
-                      >
-                        <i className="fas fa-times"></i>
-                      </Button>
-                    </Badge>
-                  </div>
-                )}
+          {!showPerfil && activeSection === 'produccion' && (
+            <Card className="shadow-sm mb-4 border-warning">
+              <Card.Header className="bg-warning bg-opacity-75 d-flex justify-content-between align-items-center">
+                <h5 className="mb-0 text-dark">
+                  <i className="fas fa-filter me-2"></i>
+                  Filtros de Producción
+                </h5>
+                <Button 
+                  variant={showFilters ? "outline-dark" : "dark"} 
+                  size="sm" 
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
+                </Button>
+              </Card.Header>
+              
+              {showFilters && (
+                <Card.Body>
+                  {activeFilter && (
+                    <div className="mb-3">
+                      <Badge bg="warning" className="p-2 mb-3">
+                        Filtro activo: {getNombreFiltro(activeFilter)}
+                        {activeFilter === 'cultivo' && <span className="ms-1">ID: {cultivoFilter}</span>}
+                        {activeFilter === 'fecha' && <span className="ms-1">Fecha: {fechaFilter}</span>}
+                        {activeFilter === 'calidad' && <span className="ms-1">Valor: {calidadFilter}</span>}
+                        {activeFilter === 'cantidad' && <span className="ms-1">Cantidad: {cantidadFilter} kg</span>}
+                        {activeFilter === 'cultivoCalidad' && (
+                          <span className="ms-1">
+                            ID: {cultivoFilter}, Calidad: {calidadFilter}
+                          </span>
+                        )}
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="ms-2 p-0 text-dark"
+                          onClick={limpiarFiltros}
+                        >
+                          <i className="fas fa-times"></i>
+                        </Button>
+                      </Badge>
+                    </div>
+                  )}
 
-                <Accordion defaultActiveKey="0">
-                  <Accordion.Item eventKey="0">
-                    <Accordion.Header>
-                      <i className="fas fa-seedling me-2"></i>
-                      Filtrar por Cultivo
-                    </Accordion.Header>
-                    <Accordion.Body>
-                      <Form.Group className="mb-3">
-                        <Form.Label>ID del Cultivo</Form.Label>
-                        <InputGroup>
-                          <Form.Control
-                            type="number"
-                            placeholder="Ingrese ID del cultivo"
-                            value={cultivoFilter}
-                            onChange={(e) => setCultivoFilter(e.target.value)}
-                          />
-                          <Button 
-                            variant="outline-warning" 
-                            onClick={() => aplicarFiltro('cultivo')}
-                            disabled={isFiltering || !cultivoFilter}
-                          >
-                            {isFiltering && activeFilter === 'cultivo' ? (
-                              <span>
-                                <span className="spinner-border spinner-border-sm me-1" /> Filtrando...
-                              </span>
-                            ) : (
-                              <span>Aplicar</span>
-                            )}
-                          </Button>
-                        </InputGroup>
-                      </Form.Group>
-                    </Accordion.Body>
-                  </Accordion.Item>
-
-                  <Accordion.Item eventKey="1">
-                    <Accordion.Header>
-                      <i className="fas fa-calendar-alt me-2"></i>
-                      Filtrar por Fecha
-                    </Accordion.Header>
-                    <Accordion.Body>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Fecha de Producción</Form.Label>
-                        <InputGroup>
-                          <Form.Control
-                            type="date"
-                            value={fechaFilter}
-                            onChange={(e) => setFechaFilter(e.target.value)}
-                          />
-                          <Button 
-                            variant="outline-warning" 
-                            onClick={() => aplicarFiltro('fecha')}
-                            disabled={isFiltering || !fechaFilter}
-                          >
-                            {isFiltering && activeFilter === 'fecha' ? (
-                              <span>
-                                <span className="spinner-border spinner-border-sm me-1" /> Filtrando...
-                              </span>
-                            ) : (
-                              <span>Aplicar</span>
-                            )}
-                          </Button>
-                        </InputGroup>
-                      </Form.Group>
-                    </Accordion.Body>
-                  </Accordion.Item>
-
-                  <Accordion.Item eventKey="2">
-                    <Accordion.Header>
-                      <i className="fas fa-star me-2"></i>
-                      Filtrar por Calidad
-                    </Accordion.Header>
-                    <Accordion.Body>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Seleccione Calidad</Form.Label>
-                        <InputGroup>
-                          <Form.Select
-                            value={calidadFilter}
-                            onChange={(e) => setCalidadFilter(e.target.value)}
-                          >
-                            <option value="">Seleccionar...</option>
-                            <option value={CALIDAD_ALTO}>{CALIDAD_ALTO}</option>
-                            <option value={CALIDAD_MEDIO}>{CALIDAD_MEDIO}</option>
-                            <option value={CALIDAD_BAJO}>{CALIDAD_BAJO}</option>
-                          </Form.Select>
-                          <Button 
-                            variant="outline-warning" 
-                            onClick={() => aplicarFiltro('calidad')}
-                            disabled={isFiltering || !calidadFilter}
-                          >
-                            {isFiltering && activeFilter === 'calidad' ? (
-                              <span>
-                                <span className="spinner-border spinner-border-sm me-1" /> Filtrando...
-                              </span>
-                            ) : (
-                              <span>Aplicar</span>
-                            )}
-                          </Button>
-                        </InputGroup>
-                      </Form.Group>
-                    </Accordion.Body>
-                  </Accordion.Item>
-
-                  <Accordion.Item eventKey="3">
-                    <Accordion.Header>
-                      <i className="fas fa-weight me-2"></i>
-                      Filtrar por Cantidad
-                    </Accordion.Header>
-                    <Accordion.Body>
-                      <Form.Group className="mb-3">
-                        <Form.Label>Cantidad (kg)</Form.Label>
-                        <InputGroup>
-                          <Form.Control
-                            type="number"
-                            placeholder="Ingrese cantidad en kg"
-                            value={cantidadFilter}
-                            onChange={(e) => setCantidadFilter(e.target.value)}
-                            step="0.01"
-                          />
-                          <Button 
-                            variant="outline-warning" 
-                            onClick={() => aplicarFiltro('cantidad')}
-                            disabled={isFiltering || !cantidadFilter}
-                          >
-                            {isFiltering && activeFilter === 'cantidad' ? (
-                              <span>
-                                <span className="spinner-border spinner-border-sm me-1" /> Filtrando...
-                              </span>
-                            ) : (
-                              <span>Aplicar</span>
-                            )}
-                          </Button>
-                        </InputGroup>
-                      </Form.Group>
-                    </Accordion.Body>
-                  </Accordion.Item>
-
-                  <Accordion.Item eventKey="4">
-                    <Accordion.Header>
-                      <i className="fas fa-filter me-2"></i>
-                      Filtrado combinado
-                    </Accordion.Header>
-                    <Accordion.Body>
-                      <Row>
-                        <Col>
-                          <Form.Group className="mb-3">
-                            <Form.Label>ID del Cultivo</Form.Label>
+                  <Accordion defaultActiveKey="0">
+                    <Accordion.Item eventKey="0">
+                      <Accordion.Header>
+                        <i className="fas fa-seedling me-2"></i>
+                        Filtrar por Cultivo
+                      </Accordion.Header>
+                      <Accordion.Body>
+                        <Form.Group className="mb-3">
+                          <Form.Label>ID del Cultivo</Form.Label>
+                          <InputGroup>
                             <Form.Control
                               type="number"
                               placeholder="Ingrese ID del cultivo"
                               value={cultivoFilter}
                               onChange={(e) => setCultivoFilter(e.target.value)}
                             />
-                          </Form.Group>
-                        </Col>
-                        <Col>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Calidad</Form.Label>
+                            <Button 
+                              variant="outline-warning" 
+                              onClick={() => aplicarFiltro('cultivo')}
+                              disabled={isFiltering || !cultivoFilter}
+                            >
+                              {isFiltering && activeFilter === 'cultivo' ? (
+                                <span>
+                                  <span className="spinner-border spinner-border-sm me-1" /> Filtrando...
+                                </span>
+                              ) : (
+                                <span>Aplicar</span>
+                              )}
+                            </Button>
+                          </InputGroup>
+                        </Form.Group>
+                      </Accordion.Body>
+                    </Accordion.Item>
+
+                    <Accordion.Item eventKey="1">
+                      <Accordion.Header>
+                        <i className="fas fa-calendar-alt me-2"></i>
+                        Filtrar por Fecha
+                      </Accordion.Header>
+                      <Accordion.Body>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Fecha de Producción</Form.Label>
+                          <InputGroup>
+                            <Form.Control
+                              type="date"
+                              value={fechaFilter}
+                              onChange={(e) => setFechaFilter(e.target.value)}
+                            />
+                            <Button 
+                              variant="outline-warning" 
+                              onClick={() => aplicarFiltro('fecha')}
+                              disabled={isFiltering || !fechaFilter}
+                            >
+                              {isFiltering && activeFilter === 'fecha' ? (
+                                <span>
+                                  <span className="spinner-border spinner-border-sm me-1" /> Filtrando...
+                                </span>
+                              ) : (
+                                <span>Aplicar</span>
+                              )}
+                            </Button>
+                          </InputGroup>
+                        </Form.Group>
+                      </Accordion.Body>
+                    </Accordion.Item>
+
+                    <Accordion.Item eventKey="2">
+                      <Accordion.Header>
+                        <i className="fas fa-star me-2"></i>
+                        Filtrar por Calidad
+                      </Accordion.Header>
+                      <Accordion.Body>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Seleccione Calidad</Form.Label>
+                          <InputGroup>
                             <Form.Select
                               value={calidadFilter}
                               onChange={(e) => setCalidadFilter(e.target.value)}
@@ -529,117 +475,202 @@ const Principal = () => {
                               <option value={CALIDAD_MEDIO}>{CALIDAD_MEDIO}</option>
                               <option value={CALIDAD_BAJO}>{CALIDAD_BAJO}</option>
                             </Form.Select>
-                          </Form.Group>
-                        </Col>
-                      </Row>
-                      <Button 
-                        variant="warning" 
-                        onClick={() => aplicarFiltro('cultivoCalidad')}
-                        disabled={isFiltering || !cultivoFilter || !calidadFilter}
-                        className="w-100"
-                      >
-                        {isFiltering && activeFilter === 'cultivoCalidad' ? (
-                          <span>
-                            <span className="spinner-border spinner-border-sm me-1" /> Filtrando...
-                          </span>
-                        ) : (
-                          <span>Aplicar Filtro Combinado</span>
-                        )}
-                      </Button>
-                    </Accordion.Body>
-                  </Accordion.Item>
-                </Accordion>
+                            <Button 
+                              variant="outline-warning" 
+                              onClick={() => aplicarFiltro('calidad')}
+                              disabled={isFiltering || !calidadFilter}
+                            >
+                              {isFiltering && activeFilter === 'calidad' ? (
+                                <span>
+                                  <span className="spinner-border spinner-border-sm me-1" /> Filtrando...
+                                </span>
+                              ) : (
+                                <span>Aplicar</span>
+                              )}
+                            </Button>
+                          </InputGroup>
+                        </Form.Group>
+                      </Accordion.Body>
+                    </Accordion.Item>
 
-                <div className="d-flex justify-content-between mt-3">
+                    <Accordion.Item eventKey="3">
+                      <Accordion.Header>
+                        <i className="fas fa-weight me-2"></i>
+                        Filtrar por Cantidad
+                      </Accordion.Header>
+                      <Accordion.Body>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Cantidad (kg)</Form.Label>
+                          <InputGroup>
+                            <Form.Control
+                              type="number"
+                              placeholder="Ingrese cantidad en kg"
+                              value={cantidadFilter}
+                              onChange={(e) => setCantidadFilter(e.target.value)}
+                              step="0.01"
+                            />
+                            <Button 
+                              variant="outline-warning" 
+                              onClick={() => aplicarFiltro('cantidad')}
+                              disabled={isFiltering || !cantidadFilter}
+                            >
+                              {isFiltering && activeFilter === 'cantidad' ? (
+                                <span>
+                                  <span className="spinner-border spinner-border-sm me-1" /> Filtrando...
+                                </span>
+                              ) : (
+                                <span>Aplicar</span>
+                              )}
+                            </Button>
+                          </InputGroup>
+                        </Form.Group>
+                      </Accordion.Body>
+                    </Accordion.Item>
+
+                    <Accordion.Item eventKey="4">
+                      <Accordion.Header>
+                        <i className="fas fa-filter me-2"></i>
+                        Filtrado combinado
+                      </Accordion.Header>
+                      <Accordion.Body>
+                        <Row>
+                          <Col>
+                            <Form.Group className="mb-3">
+                              <Form.Label>ID del Cultivo</Form.Label>
+                              <Form.Control
+                                type="number"
+                                placeholder="Ingrese ID del cultivo"
+                                value={cultivoFilter}
+                                onChange={(e) => setCultivoFilter(e.target.value)}
+                              />
+                            </Form.Group>
+                          </Col>
+                          <Col>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Calidad</Form.Label>
+                              <Form.Select
+                                value={calidadFilter}
+                                onChange={(e) => setCalidadFilter(e.target.value)}
+                              >
+                                <option value="">Seleccionar...</option>
+                                <option value={CALIDAD_ALTO}>{CALIDAD_ALTO}</option>
+                                <option value={CALIDAD_MEDIO}>{CALIDAD_MEDIO}</option>
+                                <option value={CALIDAD_BAJO}>{CALIDAD_BAJO}</option>
+                              </Form.Select>
+                            </Form.Group>
+                          </Col>
+                        </Row>
+                        <Button 
+                          variant="warning" 
+                          onClick={() => aplicarFiltro('cultivoCalidad')}
+                          disabled={isFiltering || !cultivoFilter || !calidadFilter}
+                          className="w-100"
+                        >
+                          {isFiltering && activeFilter === 'cultivoCalidad' ? (
+                            <span>
+                              <span className="spinner-border spinner-border-sm me-1" /> Filtrando...
+                            </span>
+                          ) : (
+                            <span>Aplicar Filtro Combinado</span>
+                          )}
+                        </Button>
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  </Accordion>
+
+                  <div className="d-flex justify-content-between mt-3">
+                    <Button 
+                      variant="outline-secondary" 
+                      onClick={limpiarFiltros}
+                    >
+                      <i className="fas fa-undo me-1"></i>
+                      Limpiar Filtros
+                    </Button>
+                    <Button 
+                      variant="warning" 
+                      onClick={obtenerProducciones}
+                    >
+                      <i className="fas fa-sync-alt me-1"></i>
+                      Recargar Datos
+                    </Button>
+                  </div>
+                </Card.Body>
+              )}
+            </Card>
+          )}
+
+          <Card className="shadow-sm mb-4">
+            {!showPerfil && (
+              <Card.Body>
+                <Row className="mb-4">
+                  <Col md={3}>
+                    <Button 
+                      variant={activeSection === 'cultivos' ? 'success' : 'outline-success'} 
+                      className="w-100"
+                      onClick={() => changeSection('cultivos')}
+                    >
+                      <i className="fas fa-seedling me-2"></i>
+                      Gestión de Cultivos
+                    </Button>
+                  </Col>
+                  <Col md={3}>
+                    <Button 
+                      variant={activeSection === 'riegos' ? 'primary' : 'outline-primary'} 
+                      className="w-100"
+                      onClick={() => changeSection('riegos')}
+                    >
+                      <i className="fas fa-tint me-2"></i>
+                      Gestión de Riegos
+                    </Button>
+                  </Col>
+                  <Col md={3}>
+                    <Button 
+                      variant={activeSection === 'suelos' ? 'accent-brown' : 'outline-accent-brown'} 
+                      className={`w-100 ${activeSection === 'suelos' ? 'text-light' : 'text-accent-brown'}`}
+                      onClick={() => changeSection('suelos')}
+                    >
+                      <i className="fas fa-mountain me-2"></i>
+                      Gestión de Suelos
+                    </Button>
+                  </Col>
+                  <Col md={3}>
+                    <Button 
+                      variant={activeSection === 'produccion' ? 'warning' : 'outline-warning'} 
+                      className="w-100"
+                      onClick={() => changeSection('produccion')}
+                    >
+                      <i className="fas fa-chart-line me-2"></i>
+                      Gestión de Producción
+                    </Button>
+                  </Col>
+                </Row>
+                
+                <div className="d-flex justify-content-center mt-4 mb-3">
                   <Button 
-                    variant="outline-secondary" 
-                    onClick={limpiarFiltros}
+                    variant={mostrarCuadernoCampo ? 'secondary' : 'outline-secondary'} 
+                    className="px-4 py-2"
+                    onClick={toggleCuadernoCampo}
+                    style={{ minWidth: '250px' }}
                   >
-                    <i className="fas fa-undo me-1"></i>
-                    Limpiar Filtros
-                  </Button>
-                  <Button 
-                    variant="warning" 
-                    onClick={obtenerProducciones}
-                  >
-                    <i className="fas fa-sync-alt me-1"></i>
-                    Recargar Datos
+                    <i className="fas fa-book me-3"></i>
+                    Mi Cuaderno de Campo
                   </Button>
                 </div>
               </Card.Body>
             )}
-          </Card>
-
-          <Card className="shadow-sm mb-4">
-            <Card.Body>
-              <Row className="mb-4">
-                <Col md={3}>
-                  <Button 
-                    variant={activeSection === 'cultivos' ? 'success' : 'outline-success'} 
-                    className="w-100"
-                    onClick={() => changeSection('cultivos')}
-                  >
-                    <i className="fas fa-seedling me-2"></i>
-                    Gestión de Cultivos
-                  </Button>
-                </Col>
-                <Col md={3}>
-                  <Button 
-                    variant={activeSection === 'riegos' ? 'primary' : 'outline-primary'} 
-                    className="w-100"
-                    onClick={() => changeSection('riegos')}
-                  >
-                    <i className="fas fa-tint me-2"></i>
-                    Gestión de Riegos
-                  </Button>
-                </Col>
-                <Col md={3}>
-                  <Button 
-                    variant={activeSection === 'suelos' ? 'accent-brown' : 'outline-accent-brown'} 
-                    className={`w-100 ${activeSection === 'suelos' ? 'text-light' : 'text-accent-brown'}`}
-                    onClick={() => changeSection('suelos')}
-                  >
-                    <i className="fas fa-mountain me-2"></i>
-                    Gestión de Suelos
-                  </Button>
-                </Col>
-                <Col md={3}>
-                  <Button 
-                    variant={activeSection === 'produccion' ? 'warning' : 'outline-warning'} 
-                    className="w-100"
-                    onClick={() => changeSection('produccion')}
-                  >
-                    <i className="fas fa-chart-line me-2"></i>
-                    Gestión de Producción
-                  </Button>
-                </Col>
-              </Row>
               
-              <div className="d-flex justify-content-center mt-4 mb-3">
-                <Button 
-                  variant={mostrarCuadernoCampo ? 'secondary' : 'outline-secondary'} 
-                  className="px-4 py-2"
-                  onClick={toggleCuadernoCampo}
-                  style={{ minWidth: '250px' }}
-                >
-                  <i className="fas fa-book me-3"></i>
-                  Mi Cuaderno de Campo
-                </Button>
-              </div>
-              
-              {mostrarCuadernoCampo ? (
-                <div className="cuaderno-campo-wrapper">
-                  <div className="back-button-container mb-2">
-                    <Button className="back-button" onClick={toggleCuadernoCampo}>
-                      ← Volver al Panel de Control
-                    </Button>
-                  </div>
-                  <CuadernoCampo />
+            {mostrarCuadernoCampo ? (
+              <div className="cuaderno-campo-wrapper">
+                <div className="back-button-container mb-2">
+                  <Button className="back-button" onClick={toggleCuadernoCampo}>
+                    ← Volver al Panel de Control
+                  </Button>
                 </div>
-              ) : (
-                renderContent()
-              )}
-            </Card.Body>
+                <CuadernoCampo />
+              </div>
+            ) : (
+              renderContent()
+            )}
           </Card>
         </>
       )}

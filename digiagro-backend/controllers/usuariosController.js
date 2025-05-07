@@ -171,6 +171,44 @@ const recuperarPasswordController = async (req, res) => {
   }
 };
 
+// 11. Editar perfil propio
+const editarPerfilPropio = async (req, res) => {
+  try {
+    // El id del usuario viene del token de autenticación
+    const userId = req.user.id;
+    
+    // No permitimos cambiar el rol desde aquí
+    if (req.body.rol) {
+      delete req.body.rol;
+    }
+    
+    const usuario = await updateUsuario(userId, req.body);
+    
+    if (!usuario) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+    
+    // Eliminamos la contraseña del objeto a devolver por seguridad
+    const { password, ...usuarioSinPassword } = usuario.toJSON();
+    res.json(usuarioSinPassword);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// 12. Eliminar cuenta propia
+const eliminarCuentaPropia = async (req, res) => {
+  try {
+    // El id del usuario viene del token de autenticación
+    const userId = req.user.id;
+    
+    await deleteUsuario(userId);
+    res.status(200).json({ message: "Cuenta eliminada correctamente" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   obtenerTodosLosUsuarios,
   obtenerUsuarioPorId,
@@ -182,5 +220,7 @@ module.exports = {
   eliminarUsuario,
   eliminarTodosLosUsuarios,
   verificarUsuarios,
-  recuperarPasswordController
+  recuperarPasswordController,
+  editarPerfilPropio,
+  eliminarCuentaPropia
 };

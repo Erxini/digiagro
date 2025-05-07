@@ -16,13 +16,6 @@ const crearTransportador = async () => {
             pass: process.env.EMAIL_APP_PASSWORD, 
         },
     });
-    // const transporter = nodemailer.createTransport({
-    //     service: 'gmail',
-    //     auth: {
-    //         user: process.env.EMAIL_USER, 
-    //         pass: process.env.EMAIL_APP_PASSWORD, 
-    //     },
-    // });
     
     return { transporter, testAccount };
 };

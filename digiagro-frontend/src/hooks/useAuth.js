@@ -11,8 +11,8 @@ export const useAuth = () => {
   const [token, setToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authError, setAuthError] = useState(null);
-  const [loginFieldErrors, setLoginFieldErrors] = useState({}); // Nuevo estado para errores específicos de campos
-  const { post, error } = useApi();
+  const [loginFieldErrors, setLoginFieldErrors] = useState({});
+  const { post, put, del, error } = useApi();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -292,6 +292,48 @@ export const useAuth = () => {
     }
   };
 
+  // Función para editar perfil de usuario
+  const updateUserProfile = async (userData) => {
+    setAuthError(null);
+    
+    try {
+      const updatedUser = await put('usuarios/perfil', userData);
+      
+      if (updatedUser) {
+        // Actualizar el usuario en el estado y localStorage
+        const newUserData = { ...user, ...updatedUser };
+        localStorage.setItem('user', JSON.stringify(newUserData));
+        setUser(newUserData);
+        return { success: true, data: updatedUser };
+      }
+      
+      return { success: false, error: 'No se pudo actualizar el perfil' };
+    } catch (err) {
+      setAuthError(error || 'Error al actualizar el perfil');
+      return { success: false, error: error || 'Error al actualizar el perfil' };
+    }
+  };
+
+  // Función para eliminar la cuenta del usuario
+  const deleteUserAccount = async () => {
+    setAuthError(null);
+    
+    try {
+      const response = await del('usuarios/perfil');
+      
+      if (response) {
+        // Cerrar sesión después de eliminar la cuenta
+        logout();
+        return { success: true };
+      }
+      
+      return { success: false, error: 'No se pudo eliminar la cuenta' };
+    } catch (err) {
+      setAuthError(error || 'Error al eliminar la cuenta');
+      return { success: false, error: error || 'Error al eliminar la cuenta' };
+    }
+  };
+
   return {
     user,
     token,
@@ -303,6 +345,8 @@ export const useAuth = () => {
     logout,
     recuperarPassword,
     getAuthHeader,
-    resetInactivityTimer
+    resetInactivityTimer,
+    updateUserProfile,
+    deleteUserAccount
   };
 };

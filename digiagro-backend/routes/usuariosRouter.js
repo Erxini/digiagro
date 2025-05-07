@@ -21,6 +21,12 @@ router.get("/check", UsuariosController.verificarUsuarios);
 // 1. Obtener todos los usuarios - solo para administradores
 router.get("/", authMiddleware, roleMiddleware(["Admin"]), UsuariosController.obtenerTodosLosUsuarios);
 
+// 11. Editar mi perfil - para cualquier usuario autenticado
+router.put("/perfil", authMiddleware, UsuariosController.editarPerfilPropio);
+
+// 12. Eliminar mi cuenta - para cualquier usuario autenticado
+router.delete("/perfil", authMiddleware, UsuariosController.eliminarCuentaPropia);
+
 // 2. Obtener un usuario por ID - solo el propio usuario o administradores
 router.get("/:id", authMiddleware, UsuariosController.obtenerUsuarioPorId);
 
