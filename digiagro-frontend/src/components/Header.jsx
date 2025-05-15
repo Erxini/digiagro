@@ -16,6 +16,10 @@ function Header() {
   const buttonAction = authState ? logout : null;
   const buttonLink = authState ? '/' : '/login';
 
+  // Verificar si estamos en una página que no sea la principal
+  const showGestionButton = authState && 
+    !['/principal', '/', '/login'].includes(location.pathname);
+
   // Efecto para verificar el estado de autenticación después de la carga inicial
   useEffect(() => {
     // Pequeño retraso para asegurar que la autenticación se verifique después de la carga inicial
@@ -67,6 +71,19 @@ function Header() {
       {/* Navegación normal para pantallas >= sm */}
       <nav className="d-none d-md-block">
         <ul className="nav justify-content-end" style={{ listStyle: 'none', paddingTop: '65px' }}>
+          {/* Botón de Gestión para usuarios autenticados (solo visible si no estamos en /principal) */}
+          {showGestionButton && (
+            <li className="nav-item">
+              <Link
+                className="nav-link btn me-2 bg-success text-white"
+                style={{ padding: '5px 10px', fontSize: '15px' }}
+                to="/principal"
+              >
+                <i className="fas fa-tachometer-alt me-1"></i>
+                Gestión
+              </Link>
+            </li>
+          )}
           <li className="nav-item">
             <Link
               className="nav-link btn me-2 bg-secondary-gold text-accent-brown"
@@ -118,6 +135,20 @@ function Header() {
                animation: 'fadeIn 0.3s ease-in-out'
              }}>
           <ul className="nav flex-column" style={{ listStyle: 'none' }}>
+            {/* Botón de Gestión para usuarios autenticados en versión móvil */}
+            {showGestionButton && (
+              <li className="nav-item mb-2">
+                <Link
+                  className="nav-link btn w-100 bg-success text-white"
+                  style={{ padding: '10px', fontSize: '16px' }}
+                  to="/principal"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <i className="fas fa-tachometer-alt me-1"></i>
+                  Gestión
+                </Link>
+              </li>
+            )}
             <li className="nav-item mb-2">
               <Link
                 className="nav-link btn w-100 bg-secondary-gold text-accent-brown"

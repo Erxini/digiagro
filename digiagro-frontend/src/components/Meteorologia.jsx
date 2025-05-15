@@ -82,31 +82,51 @@ const Meteorologia = () => {
 
   // Función para obtener datos meteorológicos actuales y pronóstico
   const fetchWeatherData = async (lat, lng) => {
+    console.log('Solicitando datos meteorológicos para:', lat, lng);
     setIsLoading(true);
     setError(null);
     
     try {
-      // Usamos OpenMeteo API que es gratuita y no requiere API key
-      // https://open-meteo.com/
-      const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,windspeed_10m_max,winddirection_10m_dominant&current_weather=true&timezone=auto`;
+      // Añadimos un parámetro para evitar caché usando la técnica de cache-busting
+      const cacheBuster = new Date().getTime();
       
-      const response = await fetch(forecastUrl);
+      // URL actualizada para la API de Open-Meteo
+      const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,windspeed_10m_max,winddirection_10m_dominant&current=temperature_2m,weathercode,windspeed_10m,winddirection_10m&timezone=auto&cache_bust=${cacheBuster}`;
+      
+      console.log('URL de solicitud:', forecastUrl);
+      
+      const response = await fetch(forecastUrl, {
+        cache: 'no-store' // Indicamos a fetch que no use la caché
+      });
+      
       if (!response.ok) {
         throw new Error(`Error al obtener datos meteorológicos: ${response.status}`);
       }
       
       const data = await response.json();
       
-      // Procesar datos actuales
+      // Comprobar si tenemos la estructura esperada
+      if (!data.current || !data.daily) {
+        throw new Error('La API no devolvió la estructura de datos esperada');
+      }
+      
+      // Limpiar los estados previos
+      setWeatherData(null);
+      setForecastData(null);
+      
+      // Pequeña pausa para forzar un re-render
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      // Procesar datos actuales - estructura actualizada
       const currentWeather = {
-        temperature: data.current_weather.temperature,
-        windspeed: data.current_weather.windspeed,
-        winddirection: data.current_weather.winddirection,
-        weathercode: data.current_weather.weathercode,
-        time: new Date(data.current_weather.time)
+        temperature: data.current.temperature_2m,
+        windspeed: data.current.windspeed_10m,
+        winddirection: data.current.winddirection_10m,
+        weathercode: data.current.weathercode,
+        time: new Date(data.current.time)
       };
       
-      setWeatherData(currentWeather);
+      console.log('Datos climáticos actuales procesados:', currentWeather);
       
       // Procesar pronóstico diario
       const dailyForecast = {
@@ -120,6 +140,10 @@ const Meteorologia = () => {
         winddirection: data.daily.winddirection_10m_dominant
       };
       
+      console.log('Datos de pronóstico procesados:', dailyForecast);
+      
+      // Actualizar estados con los nuevos datos
+      setWeatherData(currentWeather);
       setForecastData(dailyForecast);
       
       // Mostrar información en el popup del marcador
@@ -129,7 +153,11 @@ const Meteorologia = () => {
           <b>Parcela seleccionada</b><br>
           ${currentWeather.temperature}°C | ${weatherDescription}
         `);
+        markerRef.current.getPopup().update();
       }
+      
+      // Forzar una actualización visual
+      setParcelaSeleccionada(true);
       
     } catch (err) {
       console.error('Error al obtener datos meteorológicos:', err);
