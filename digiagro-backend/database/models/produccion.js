@@ -30,6 +30,16 @@ Produccion.init({
     type: DataTypes.STRING(50),
     allowNull: true,
   },
+  precio_venta: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+    defaultValue: 0,
+  },
+  ganancia: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+    defaultValue: 0,
+  },
 }, {
   sequelize,
   modelName: 'produccion',

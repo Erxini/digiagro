@@ -26,13 +26,17 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
     id_cultivo: '',
     cantidad: '',
     fecha: '',
-    calidad: ''
+    calidad: '',
+    precio_venta: '',
+    ganancia: ''
   });
   const [createForm, setCreateForm] = useState({
     id_cultivo: '',
     cantidad: '',
     fecha: new Date().toISOString().split('T')[0],
-    calidad: ''
+    calidad: '',
+    precio_venta: '',
+    ganancia: ''
   });
   const [formErrors, setFormErrors] = useState({});
   const [createFormErrors, setCreateFormErrors] = useState({});
@@ -152,9 +156,39 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
       id_cultivo: produccion.id_cultivo.toString(),
       cantidad: produccion.cantidad.toString(),
       fecha: produccion.fecha ? new Date(produccion.fecha).toISOString().split('T')[0] : '',
-      calidad: produccion.calidad || ''
+      calidad: produccion.calidad || '',
+      precio_venta: produccion.precio_venta.toString() || '',
+      ganancia: produccion.ganancia.toString() || ''
     });
     setShowEditModal(true);
+  };
+
+  // Función para calcular automáticamente la ganancia
+  const calculateGanancia = (cantidad, precioVenta) => {
+    const cantidadNum = parseFloat(cantidad) || 0;
+    const precioNum = parseFloat(precioVenta) || 0;
+    return (cantidadNum * precioNum).toFixed(2);
+  };
+
+  // Actualizar handlers para incluir cálculo automático de ganancia
+  const handleEditPrecioChange = (e) => {
+    const nuevoPrecio = e.target.value;
+    const nuevaGanancia = calculateGanancia(editForm.cantidad, nuevoPrecio);
+    setEditForm({ 
+      ...editForm, 
+      precio_venta: nuevoPrecio,
+      ganancia: nuevaGanancia
+    });
+  };
+
+  const handleEditCantidadChange = (e) => {
+    const nuevaCantidad = e.target.value;
+    const nuevaGanancia = calculateGanancia(nuevaCantidad, editForm.precio_venta);
+    setEditForm({ 
+      ...editForm, 
+      cantidad: nuevaCantidad,
+      ganancia: nuevaGanancia
+    });
   };
 
   const handleUpdateProduccion = async () => {
@@ -176,7 +210,9 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
         id_cultivo: parseInt(editForm.id_cultivo),
         cantidad: parseFloat(editForm.cantidad),
         fecha: editForm.fecha,
-        calidad: editForm.calidad
+        calidad: editForm.calidad,
+        precio_venta: parseFloat(editForm.precio_venta),
+        ganancia: parseFloat(editForm.ganancia)
       };
       await put(`produccion/${selectedProduccion.id_produccion}`, updatedProduccion);
       setShowEditModal(false);
@@ -206,7 +242,9 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
         id_cultivo: parseInt(createForm.id_cultivo),
         cantidad: parseFloat(createForm.cantidad),
         fecha: createForm.fecha,
-        calidad: createForm.calidad
+        calidad: createForm.calidad,
+        precio_venta: parseFloat(createForm.precio_venta),
+        ganancia: parseFloat(createForm.ganancia)
       };
       
       await post('produccion', newProduccion);
@@ -215,7 +253,9 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
         id_cultivo: '',
         cantidad: '',
         fecha: new Date().toISOString().split('T')[0],
-        calidad: ''
+        calidad: '',
+        precio_venta: '',
+        ganancia: ''
       });
       setCreateFormErrors({});
       
@@ -224,6 +264,26 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
       console.error('Error al crear producción:', error);
       alert('Error al crear la producción.');
     }
+  };
+
+  const handleCreateCantidadChange = (e) => {
+    const nuevaCantidad = e.target.value;
+    const nuevaGanancia = calculateGanancia(nuevaCantidad, createForm.precio_venta);
+    setCreateForm({ 
+      ...createForm, 
+      cantidad: nuevaCantidad,
+      ganancia: nuevaGanancia
+    });
+  };
+
+  const handleCreatePrecioChange = (e) => {
+    const nuevoPrecio = e.target.value;
+    const nuevaGanancia = calculateGanancia(createForm.cantidad, nuevoPrecio);
+    setCreateForm({ 
+      ...createForm, 
+      precio_venta: nuevoPrecio,
+      ganancia: nuevaGanancia
+    });
   };
 
   return (
@@ -310,6 +370,12 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
                   <th style={{cursor: 'pointer'}} onClick={() => handleSort('calidad')}>
                     Calidad {renderSortIndicator('calidad')}
                   </th>
+                  <th style={{cursor: 'pointer'}} onClick={() => handleSort('precio_venta')}>
+                    Precio/Kg {renderSortIndicator('precio_venta')}
+                  </th>
+                  <th style={{cursor: 'pointer'}} onClick={() => handleSort('ganancia')}>
+                    Ganancia {renderSortIndicator('ganancia')}
+                  </th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -321,6 +387,8 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
                     <td>{produccion.cantidad} kg</td>
                     <td>{formatDate(produccion.fecha)}</td>
                     <td>{getCalidadBadge(produccion.calidad)}</td>
+                    <td>{produccion.precio_venta} €</td>
+                    <td>{produccion.ganancia} €</td>
                     <td>
                       {!isTecnico ? (
                         <>
@@ -492,6 +560,34 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
                 <option value={CALIDAD_BAJO}>{CALIDAD_BAJO}</option>
               </Form.Select>
             </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Precio de Venta</Form.Label>
+              <Form.Control
+                type="number"
+                step="0.01"
+                value={editForm.precio_venta}
+                onChange={handleEditPrecioChange}
+                isInvalid={!!formErrors.precio_venta}
+              />
+              <Form.Control.Feedback type="invalid">
+                {formErrors.precio_venta}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Ganancia</Form.Label>
+              <Form.Control
+                type="number"
+                step="0.01"
+                value={editForm.ganancia}
+                onChange={(e) => setEditForm({ ...editForm, ganancia: e.target.value })}
+                isInvalid={!!formErrors.ganancia}
+              />
+              <Form.Control.Feedback type="invalid">
+                {formErrors.ganancia}
+              </Form.Control.Feedback>
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -561,6 +657,34 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
                 <option value={CALIDAD_MEDIO} translate="no">{CALIDAD_MEDIO}</option>
                 <option value={CALIDAD_BAJO}>{CALIDAD_BAJO}</option>
               </Form.Select>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Precio de Venta</Form.Label>
+              <Form.Control
+                type="number"
+                step="0.01"
+                value={createForm.precio_venta}
+                onChange={handleCreatePrecioChange}
+                isInvalid={!!createFormErrors.precio_venta}
+              />
+              <Form.Control.Feedback type="invalid">
+                {createFormErrors.precio_venta}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Ganancia</Form.Label>
+              <Form.Control
+                type="number"
+                step="0.01"
+                value={createForm.ganancia}
+                onChange={(e) => setCreateForm({ ...createForm, ganancia: e.target.value })}
+                isInvalid={!!createFormErrors.ganancia}
+              />
+              <Form.Control.Feedback type="invalid">
+                {createFormErrors.ganancia}
+              </Form.Control.Feedback>
             </Form.Group>
           </Form>
         </Modal.Body>

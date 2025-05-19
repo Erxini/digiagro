@@ -27,6 +27,9 @@ app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 
   sequelize
-  .sync({force: false})// Cambiar a true no si quiero mantener los datos entre reinicios
-  .then(() => console.log('Conectado a digiagro')) 
+  .sync({force: false}) // TEMPORAL: Cambiado a true para recrear las tablas con los nuevos campos
+  .then(() => {
+    console.log('Base de datos sincronizada - tablas recreadas');
+    // Cambiar de nuevo a false después de ejecutar una vez
+  })
 });
