@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Form, InputGroup, Row, Col, Modal } from 'react-bootstrap';
 import { useApi } from '../hooks/useApi';
 import DetallesCultivo from './DetallesCultivo';
+import { useAuth } from '../hooks/useAuth';
 
 const CultivosList = ({ cultivos, onClose, onRefresh }) => {
+  // Obtener información del usuario para control de acceso
+  const { user } = useAuth();
+  const isTecnico = user?.rol === 'Tec';
+  
   const [sortedCultivos, setSortedCultivos] = useState([]);
   const [sortField, setSortField] = useState('id_cultivo');
   const [sortDirection, setSortDirection] = useState('asc');
@@ -325,24 +330,31 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
                     <td>{getEstadoBadge(cultivo.estado)}</td>
                     <td>{cultivo.ubicacion}</td>
                     <td>
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm" 
-                        className="me-1"
-                        onClick={() => {
-                          setSelectedCultivo(cultivo);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        <i className="fas fa-trash-alt"></i>
-                      </Button>
-                      <Button 
-                        variant="outline-primary" 
-                        size="sm"
-                        onClick={() => handleEditCultivo(cultivo)}
-                      >
-                        <i className="fas fa-edit"></i>
-                      </Button>
+                      {/* Controlar visibilidad de botones según el rol */}
+                      {!isTecnico && (
+                        <>
+                          <Button 
+                            variant="outline-danger" 
+                            size="sm" 
+                            className="me-1"
+                            onClick={() => {
+                              setSelectedCultivo(cultivo);
+                              setShowDeleteModal(true);
+                            }}
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                          </Button>
+                          <Button 
+                            variant="outline-primary" 
+                            size="sm"
+                            className="me-1"
+                            onClick={() => handleEditCultivo(cultivo)}
+                          >
+                            <i className="fas fa-edit"></i>
+                          </Button>
+                        </>
+                      )}
+                      {/* El botón de Ver detalles siempre está disponible para todos los roles */}
                       <Button 
                         variant="outline-success" 
                         size="sm"
@@ -363,20 +375,26 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
             <span className="text-muted me-3">
               Mostrando {filteredCultivos.length} de {cultivos?.length || 0} cultivos
             </span>
-            <Button 
-              variant="outline-danger" 
-              size="sm" 
-              onClick={() => setShowDeleteAllModal(true)}
-            >
-              <i className="fas fa-trash-alt me-1"></i>
-              Eliminar todos los cultivos
-            </Button>
+            {/* Mostrar botón de eliminar todos solo si no es técnico */}
+            {!isTecnico && (
+              <Button 
+                variant="outline-danger" 
+                size="sm" 
+                onClick={() => setShowDeleteAllModal(true)}
+              >
+                <i className="fas fa-trash-alt me-1"></i>
+                Eliminar todos los cultivos
+              </Button>
+            )}
           </div>
           <div>
-            <Button variant="success" className="me-2" onClick={() => setShowCreateModal(true)}>
-              <i className="fas fa-plus me-1"></i>
-              Crear Cultivo
-            </Button>
+            {/* Mostrar botón de crear solo si no es técnico */}
+            {!isTecnico && (
+              <Button variant="success" className="me-2" onClick={() => setShowCreateModal(true)}>
+                <i className="fas fa-plus me-1"></i>
+                Crear Cultivo
+              </Button>
+            )}
             <Button variant="success" onClick={onRefresh}>
               <i className="fas fa-sync-alt me-1"></i>
               Actualizar

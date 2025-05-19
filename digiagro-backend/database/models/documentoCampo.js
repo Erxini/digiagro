@@ -71,7 +71,7 @@ DocumentoCampo.init({
   sequelize,
   modelName: 'documentoCampo',
   tableName: 'documentos_campo',
-  // timestamps: true,
+  timestamps: false, 
 });
 
 module.exports = DocumentoCampo;

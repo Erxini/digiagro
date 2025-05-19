@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Form, InputGroup, Row, Col, Modal } from 'react-bootstrap';
 import { useApi } from '../hooks/useApi';
+import { useAuth } from '../hooks/useAuth';
 
 // Constantes para evitar la traducción automática
 const CALIDAD_ALTO = "Alto/a";
@@ -8,6 +9,10 @@ const CALIDAD_MEDIO = "Medio/a";
 const CALIDAD_BAJO = "Bajo/a";
 
 const ProduccionList = ({ producciones, onClose, onRefresh }) => {
+  // Añadir control de acceso basado en rol
+  const { user } = useAuth();
+  const isTecnico = user?.rol === 'Tec';
+  
   const [sortedProducciones, setSortedProducciones] = useState([]);
   const [sortField, setSortField] = useState('id_produccion');
   const [sortDirection, setSortDirection] = useState('asc');
@@ -317,24 +322,32 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
                     <td>{formatDate(produccion.fecha)}</td>
                     <td>{getCalidadBadge(produccion.calidad)}</td>
                     <td>
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm" 
-                        className="me-1"
-                        onClick={() => {
-                          setSelectedProduccion(produccion);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        <i className="fas fa-trash-alt"></i>
-                      </Button>
-                      <Button 
-                        variant="outline-primary" 
-                        size="sm"
-                        onClick={() => handleEditProduccion(produccion)}
-                      >
-                        <i className="fas fa-edit"></i>
-                      </Button>
+                      {!isTecnico ? (
+                        <>
+                          <Button 
+                            variant="outline-danger" 
+                            size="sm" 
+                            className="me-1"
+                            onClick={() => {
+                              setSelectedProduccion(produccion);
+                              setShowDeleteModal(true);
+                            }}
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                          </Button>
+                          <Button 
+                            variant="outline-primary" 
+                            size="sm"
+                            onClick={() => handleEditProduccion(produccion)}
+                          >
+                            <i className="fas fa-edit"></i>
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="badge bg-info text-white">
+                          <i className="fas fa-eye me-1"></i>Solo lectura
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -348,20 +361,26 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
             <span className="text-muted me-3">
               Mostrando {filteredProducciones.length} de {producciones?.length || 0} producciones
             </span>
-            <Button 
-              variant="outline-danger" 
-              size="sm" 
-              onClick={() => setShowDeleteAllModal(true)}
-            >
-              <i className="fas fa-trash-alt me-1"></i>
-              Eliminar todas las producciones
-            </Button>
+            {/* Mostrar botón de eliminar todos solo si NO es técnico */}
+            {!isTecnico && (
+              <Button 
+                variant="outline-danger" 
+                size="sm" 
+                onClick={() => setShowDeleteAllModal(true)}
+              >
+                <i className="fas fa-trash-alt me-1"></i>
+                Eliminar todas las producciones
+              </Button>
+            )}
           </div>
           <div>
-            <Button variant="warning" className="me-2" onClick={() => setShowCreateModal(true)}>
-              <i className="fas fa-plus me-1"></i>
-              Crear Producción
-            </Button>
+            {/* Mostrar botón de crear solo si NO es técnico */}
+            {!isTecnico && (
+              <Button variant="warning" className="me-2" onClick={() => setShowCreateModal(true)}>
+                <i className="fas fa-plus me-1"></i>
+                Crear Producción
+              </Button>
+            )}
             <Button variant="warning" onClick={onRefresh}>
               <i className="fas fa-sync-alt me-1"></i>
               Actualizar

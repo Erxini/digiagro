@@ -27,6 +27,6 @@ app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 
   sequelize
-  .sync({force: false})// Cambiar a true si quiero mantener los datos entre reinicios
+  .sync({force: false})// Cambiar a true no si quiero mantener los datos entre reinicios
   .then(() => console.log('Conectado a digiagro')) 
 });

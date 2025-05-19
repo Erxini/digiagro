@@ -5,6 +5,8 @@ import { useAuth } from '../hooks/useAuth';
 
 const RiegosList = ({ riegos = [], onClose, onRefresh }) => {
   const { user } = useAuth();
+  const isTecnico = user?.rol === 'Tec';
+  
   const [sortedRiegos, setSortedRiegos] = useState([]);
   const [sortField, setSortField] = useState('id_riego');
   const [sortDirection, setSortDirection] = useState('asc');
@@ -303,24 +305,33 @@ const RiegosList = ({ riegos = [], onClose, onRefresh }) => {
                     <td>{riego.cantidad_agua || '-'} L</td>
                     <td>{riego.observaciones ? riego.observaciones.substring(0, 30) + (riego.observaciones.length > 30 ? '...' : '') : '-'}</td>
                     <td>
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm" 
-                        className="me-1"
-                        onClick={() => {
-                          setSelectedRiego(riego);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        <i className="fas fa-trash-alt"></i>
-                      </Button>
-                      <Button 
-                        variant="outline-primary" 
-                        size="sm"
-                        onClick={() => handleEditRiego(riego)}
-                      >
-                        <i className="fas fa-edit"></i>
-                      </Button>
+                      {/* Mostrar botones de edición/eliminación solo si NO es técnico */}
+                      {!isTecnico ? (
+                        <>
+                          <Button 
+                            variant="outline-danger" 
+                            size="sm" 
+                            className="me-1"
+                            onClick={() => {
+                              setSelectedRiego(riego);
+                              setShowDeleteModal(true);
+                            }}
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                          </Button>
+                          <Button 
+                            variant="outline-primary" 
+                            size="sm"
+                            onClick={() => handleEditRiego(riego)}
+                          >
+                            <i className="fas fa-edit"></i>
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="badge bg-info text-white">
+                          <i className="fas fa-eye me-1"></i>Solo lectura
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -334,20 +345,26 @@ const RiegosList = ({ riegos = [], onClose, onRefresh }) => {
             <span className="text-muted me-3">
               Mostrando {filteredRiegos.length} de {riegos?.length || 0} riegos
             </span>
-            <Button 
-              variant="outline-danger" 
-              size="sm" 
-              onClick={() => setShowDeleteAllModal(true)}
-            >
-              <i className="fas fa-trash-alt me-1"></i>
-              Eliminar todos los riegos
-            </Button>
+            {/* Mostrar botón de eliminar todos solo si NO es técnico */}
+            {!isTecnico && (
+              <Button 
+                variant="outline-danger" 
+                size="sm" 
+                onClick={() => setShowDeleteAllModal(true)}
+              >
+                <i className="fas fa-trash-alt me-1"></i>
+                Eliminar todos los riegos
+              </Button>
+            )}
           </div>
           <div>
-            <Button variant="primary" className="me-2" onClick={() => setShowCreateModal(true)}>
-              <i className="fas fa-plus me-1"></i>
-              Crear Riego
-            </Button>
+            {/* Mostrar botón de crear solo si NO es técnico */}
+            {!isTecnico && (
+              <Button variant="primary" className="me-2" onClick={() => setShowCreateModal(true)}>
+                <i className="fas fa-plus me-1"></i>
+                Crear Riego
+              </Button>
+            )}
             <Button variant="primary" onClick={onRefresh}>
               <i className="fas fa-sync-alt me-1"></i>
               Actualizar

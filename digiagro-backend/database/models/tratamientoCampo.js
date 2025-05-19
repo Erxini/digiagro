@@ -89,7 +89,7 @@ TratamientoCampo.init({
   sequelize,
   modelName: 'tratamientoCampo',
   tableName: 'tratamientos_campo',
-  // timestamps: true,
+  timestamps: false // Desactivar columnas createdAt y updatedAt
 });
 
 module.exports = TratamientoCampo;

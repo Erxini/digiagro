@@ -51,7 +51,7 @@ ActividadCampo.init({
   sequelize,
   modelName: 'actividadCampo',
   tableName: 'actividades_campo',
-  // timestamps: true,
+  timestamps: false, 
 });
 
 module.exports = ActividadCampo;

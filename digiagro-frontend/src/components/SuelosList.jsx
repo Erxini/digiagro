@@ -5,6 +5,8 @@ import { useAuth } from '../hooks/useAuth';
 
 const SuelosList = ({ suelos = [], onClose, onRefresh }) => {
   const { user } = useAuth();
+  const isTecnico = user?.rol === 'Tec';
+  
   const [sortedSuelos, setSortedSuelos] = useState([]);
   const [sortField, setSortField] = useState('id_suelo');
   const [sortDirection, setSortDirection] = useState('asc');
@@ -330,24 +332,32 @@ const SuelosList = ({ suelos = [], onClose, onRefresh }) => {
                     <td>{getTipoSueloBadge(suelo.tipo_suelo)}</td>
                     <td>{suelo.nutrientes ? suelo.nutrientes.substring(0, 30) + (suelo.nutrientes.length > 30 ? '...' : '') : '-'}</td>
                     <td>
-                      <Button 
-                        variant="outline-danger" 
-                        size="sm" 
-                        className="me-1"
-                        onClick={() => {
-                          setSelectedSuelo(suelo);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        <i className="fas fa-trash-alt"></i>
-                      </Button>
-                      <Button 
-                        variant="outline-accent-brown" 
-                        size="sm"
-                        onClick={() => handleEditSuelo(suelo)}
-                      >
-                        <i className="fas fa-edit"></i>
-                      </Button>
+                      {!isTecnico ? (
+                        <>
+                          <Button 
+                            variant="outline-danger" 
+                            size="sm" 
+                            className="me-1"
+                            onClick={() => {
+                              setSelectedSuelo(suelo);
+                              setShowDeleteModal(true);
+                            }}
+                          >
+                            <i className="fas fa-trash-alt"></i>
+                          </Button>
+                          <Button 
+                            variant="outline-accent-brown" 
+                            size="sm"
+                            onClick={() => handleEditSuelo(suelo)}
+                          >
+                            <i className="fas fa-edit"></i>
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="badge bg-info text-white">
+                          <i className="fas fa-eye me-1"></i>Solo lectura
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -361,20 +371,26 @@ const SuelosList = ({ suelos = [], onClose, onRefresh }) => {
             <span className="text-muted me-3">
               Mostrando {filteredSuelos.length} de {suelos?.length || 0} análisis de suelo
             </span>
-            <Button 
-              variant="outline-danger" 
-              size="sm" 
-              onClick={() => setShowDeleteAllModal(true)}
-            >
-              <i className="fas fa-trash-alt me-1"></i>
-              Eliminar todos los análisis
-            </Button>
+            {/* Mostrar botón de eliminar todos solo si NO es técnico */}
+            {!isTecnico && (
+              <Button 
+                variant="outline-danger" 
+                size="sm" 
+                onClick={() => setShowDeleteAllModal(true)}
+              >
+                <i className="fas fa-trash-alt me-1"></i>
+                Eliminar todos los análisis
+              </Button>
+            )}
           </div>
           <div>
-            <Button variant="accent-brown" className="me-2 text-white" onClick={() => setShowCreateModal(true)}>
-              <i className="fas fa-plus me-1"></i>
-              Crear Análisis
-            </Button>
+            {/* Mostrar botón de crear solo si NO es técnico */}
+            {!isTecnico && (
+              <Button variant="accent-brown" className="me-2 text-white" onClick={() => setShowCreateModal(true)}>
+                <i className="fas fa-plus me-1"></i>
+                Crear Análisis
+              </Button>
+            )}
             <Button variant="accent-brown" className="text-white" onClick={onRefresh}>
               <i className="fas fa-sync-alt me-1"></i>
               Actualizar
