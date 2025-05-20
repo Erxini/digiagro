@@ -4,7 +4,7 @@ import { useApi } from './useApi';
 
 export const useCuadernoCampo = () => {
   const { user } = useAuth(); // Cambiado de userData a user para usar la propiedad correcta
-  const { get, post, put, remove } = useApi();
+  const { get, post, put, del } = useApi(); // Cambiado de 'remove' a 'del' para usar el nombre correcto
   
   // Añadimos log para depuración
   console.log("Estado de usuario en useCuadernoCampo:", user);
@@ -183,7 +183,7 @@ export const useCuadernoCampo = () => {
   // Eliminar una actividad
   const deleteActividad = async (id) => {
     try {
-      await remove(`actividades-campo/${id}`);
+      await del(`actividades-campo/${id}`);
       await fetchActividades();
       showAlert('Actividad eliminada correctamente', 'success');
     } catch (error) {
@@ -212,7 +212,7 @@ export const useCuadernoCampo = () => {
   // Eliminar un tratamiento
   const deleteTratamiento = async (id) => {
     try {
-      await remove(`tratamientos-campo/${id}`);
+      await del(`tratamientos-campo/${id}`);
       await fetchTratamientos();
       showAlert('Tratamiento eliminado correctamente', 'success');
     } catch (error) {
@@ -356,7 +356,7 @@ export const useCuadernoCampo = () => {
   // Eliminar un documento
   const deleteDocumento = async (id) => {
     try {
-      await remove(`documentos-campo/${id}`);
+      await del(`documentos-campo/${id}`);
       await fetchDocumentos();
       showAlert('Documento eliminado correctamente', 'success');
     } catch (error) {
@@ -371,28 +371,26 @@ export const useCuadernoCampo = () => {
   const generarInformePDF = async (filtros) => {
     try {
       console.log('Generando informe PDF con filtros:', filtros);
+      console.log('Elementos seleccionados:', filtros.elementosSeleccionados);
       
-      // Verificar que tenemos los datos filtrados
-      const actividadesFiltradas = filtros.datos ? filtros.datos.actividades : actividades;
-      const tratamientosFiltrados = filtros.datos ? filtros.datos.tratamientos : tratamientos;
-      const documentosFiltrados = filtros.datos ? filtros.datos.documentos : documentos;
+      // Usar los datos proporcionados por el componente (ya filtrados por selección)
+      const actividadesFiltradas = filtros.datos ? filtros.datos.actividades : [];
+      const tratamientosFiltrados = filtros.datos ? filtros.datos.tratamientos : [];
+      const documentosFiltrados = filtros.datos ? filtros.datos.documentos : [];
       
-      console.log('Actividades filtradas:', actividadesFiltradas.length);
-      console.log('Tratamientos filtrados:', tratamientosFiltrados.length);
-      console.log('Documentos filtrados:', documentosFiltrados.length);
+      console.log(`PDF incluirá: ${actividadesFiltradas.length} actividades, ${tratamientosFiltrados.length} tratamientos, ${documentosFiltrados.length} documentos`);
       
-      // Intentar importar jsPDF dinámicamente si no está disponible en window
+      // Importar jsPDF dinámicamente si no está disponible en window
       let jsPDF;
       if (window.jspdf && window.jspdf.jsPDF) {
         jsPDF = window.jspdf.jsPDF;
       } else {
         try {
-          // Intentar importar la biblioteca
           const jsPDFModule = await import('jspdf');
           jsPDF = jsPDFModule.default;
           
           if (!jsPDF) {
-            showAlert('Error al cargar la librería jsPDF. Por favor, asegúrate de que esté instalada.', 'danger');
+            showAlert('Error al cargar la librería jsPDF', 'danger');
             return;
           }
         } catch (err) {
@@ -403,7 +401,7 @@ export const useCuadernoCampo = () => {
       
       const doc = new jsPDF();
       
-      // Fecha formateada para el informe (formato día/mes/año)
+      // Fecha formateada para el informe 
       const fechaActual = new Date();
       const fechaFormateada = fechaActual.getDate() + '/' + (fechaActual.getMonth() + 1) + '/' + fechaActual.getFullYear();
       
@@ -421,7 +419,7 @@ export const useCuadernoCampo = () => {
       let yPos = 50;
       
       // Si se han solicitado actividades
-      if (filtros.incluirActividades || filtros.includeActividades) {
+      if ((filtros.incluirActividades || filtros.includeActividades) && actividadesFiltradas.length > 0) {
         doc.setFontSize(16);
         doc.text('Actividades registradas', 20, yPos);
         yPos += 10;
@@ -467,7 +465,7 @@ export const useCuadernoCampo = () => {
             }
           });
         } else {
-          doc.text("No hay actividades registradas", 30, yPos);
+          doc.text("No hay actividades seleccionadas", 30, yPos);
           yPos += 6;
         }
         
@@ -475,7 +473,7 @@ export const useCuadernoCampo = () => {
       }
       
       // Si se han solicitado tratamientos
-      if (filtros.incluyeTratamientos || filtros.incluirTratamientos) {
+      if ((filtros.incluyeTratamientos || filtros.incluirTratamientos) && tratamientosFiltrados.length > 0) {
         doc.setFontSize(16);
         doc.text('Tratamientos aplicados', 20, yPos);
         yPos += 10;
@@ -523,15 +521,17 @@ export const useCuadernoCampo = () => {
             }
           });
         } else {
-          doc.text("No hay tratamientos registrados", 30, yPos);
+          doc.text("No hay tratamientos seleccionados", 30, yPos);
           yPos += 6;
         }
         
         yPos += 10;
       }
       
-      // Si se han solicitado documentos
-      if (filtros.incluyeDocumentos || filtros.incluirDocumentos) {
+      // SECCIÓN DE DOCUMENTOS
+      if ((filtros.incluyeDocumentos || filtros.incluirDocumentos) && documentosFiltrados.length > 0) {
+        console.log("PROCESANDO DOCUMENTOS SELECCIONADOS PARA PDF:", documentosFiltrados.length);
+        
         doc.setFontSize(16);
         doc.text('Documentos registrados', 20, yPos);
         yPos += 10;
@@ -539,39 +539,53 @@ export const useCuadernoCampo = () => {
         doc.setFontSize(10);
         
         if (documentosFiltrados && documentosFiltrados.length > 0) {
-          documentosFiltrados.forEach(documento => {
-            // Formatear la fecha como día/mes/año
-            const fecha = new Date(documento.fecha_subida);
-            const fechaDoc = fecha.getDate() + '/' + (fecha.getMonth() + 1) + '/' + fecha.getFullYear();
-            
-            const nombreDoc = documento.nombre || 'Sin nombre';
-            const tipoDoc = documento.tipo_documento || 'Sin tipo';
-            
-            // Información principal del documento
-            doc.text('• ' + fechaDoc + ' - ' + nombreDoc + ' (' + tipoDoc + ')', 30, yPos);
-            yPos += 5;
-            
-            // Detalles adicionales del documento
-            if (documento.descripcion) {
-              doc.text('  Descripción: ' + documento.descripcion, 35, yPos);
-              yPos += 5;
+          console.log(`Procesando ${documentosFiltrados.length} documentos para PDF`);
+          let documentosIncluidos = 0;
+          
+          for (let i = 0; i < documentosFiltrados.length; i++) {
+            try {
+              const doc_item = documentosFiltrados[i];
+              if (!doc_item || !doc_item.nombre) {
+                console.log(`Documento ${i} inválido o sin nombre, omitiendo`);
+                continue;
+              }
+              
+              // Información principal del documento
+              doc.text(`• ${doc_item.nombre} (${doc_item.tipo_documento || 'Sin tipo'})`, 30, yPos);
+              documentosIncluidos++;
+              yPos += 6;
+              
+              // Si tiene descripción, añadirla
+              if (doc_item.descripcion) {
+                doc.text(`  Descripción: ${doc_item.descripcion}`, 35, yPos);
+                yPos += 6;
+              }
+              
+              // Si tiene fecha, formatearla y añadirla
+              if (doc_item.fecha_subida) {
+                try {
+                  const fecha = new Date(doc_item.fecha_subida);
+                  const fechaFormateada = fecha.getDate() + '/' + (fecha.getMonth() + 1) + '/' + fecha.getFullYear();
+                  doc.text(`  Fecha: ${fechaFormateada}`, 35, yPos);
+                  yPos += 6;
+                } catch (err) {
+                  console.log(`Error al formatear fecha del documento ${i}:`, err);
+                }
+              }
+              
+              // Evitar desbordamiento de página
+              if (yPos > 280) {
+                doc.addPage();
+                yPos = 20;
+              }
+            } catch (err) {
+              console.error(`Error al procesar documento ${i}:`, err);
             }
-            
-            if (documento.archivo_url) {
-              const nombreArchivo = documento.archivo_url.split('/').pop();
-              doc.text('  Archivo: ' + nombreArchivo, 35, yPos);
-              yPos += 5;
-            }
-            
-            yPos += 3; // Espacio entre documentos
-            
-            if (yPos > 280) {
-              doc.addPage();
-              yPos = 20;
-            }
-          });
+          }
+          
+          console.log(`Total documentos incluidos en PDF: ${documentosIncluidos}`);
         } else {
-          doc.text("No hay documentos registrados", 30, yPos);
+          doc.text("No hay documentos seleccionados", 30, yPos);
           yPos += 6;
         }
         
@@ -637,7 +651,6 @@ export const useCuadernoCampo = () => {
       const workbook = XLSX.utils.book_new();
       
       // Agregar hojas según los datos disponibles
-      
       // Hoja de actividades
       if (actividadesFiltradas && actividadesFiltradas.length > 0) {
         const actividadesData = actividadesFiltradas.map(act => ({

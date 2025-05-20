@@ -59,10 +59,13 @@ const updateActividad = async (id, data) => {
 // 6. Eliminar una actividad por ID
 const deleteActividad = async (id) => {
   try {
-    const actividad = await ActividadCampo.findByPk(id);
-    if (!actividad) throw new Error("Actividad no encontrada");
-    await actividad.destroy();
-    return actividad;
+    // En lugar de buscar y luego destruir, usar directamente destroy con where
+    const result = await ActividadCampo.destroy({
+      where: { id_actividad: id }
+    });
+    
+    if (result === 0) throw new Error("Actividad no encontrada");
+    return { success: true, message: "Actividad eliminada correctamente" };
   } catch (error) {
     throw new Error("Error al eliminar la actividad: " + error.message);
   }

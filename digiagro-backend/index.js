@@ -27,9 +27,8 @@ app.listen(PORT, () => {
   console.log(`Servidor escuchando en http://localhost:${PORT}`);
 
   sequelize
-  .sync({force: false}) // TEMPORAL: Cambiado a true para recrear las tablas con los nuevos campos
+  .sync({force: false}) //true para recrear las tablas con los nuevos campos
   .then(() => {
     console.log('Base de datos sincronizada - tablas recreadas');
-    // Cambiar de nuevo a false después de ejecutar una vez
   })
 });

@@ -106,10 +106,13 @@ const updateTratamiento = async (id, data) => {
 // 7. Eliminar un tratamiento por ID
 const deleteTratamiento = async (id) => {
   try {
-    const tratamiento = await TratamientoCampo.findByPk(id);
-    if (!tratamiento) throw new Error("Tratamiento no encontrado");
-    await tratamiento.destroy();
-    return tratamiento;
+    // En lugar de buscar y luego destruir, usar directamente destroy con where
+    const result = await TratamientoCampo.destroy({
+      where: { id_tratamiento: id }
+    });
+    
+    if (result === 0) throw new Error("Tratamiento no encontrado");
+    return { success: true, message: "Tratamiento eliminado correctamente" };
   } catch (error) {
     throw new Error("Error al eliminar el tratamiento: " + error.message);
   }

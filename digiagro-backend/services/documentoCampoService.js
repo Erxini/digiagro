@@ -146,19 +146,29 @@ const updateDocumento = async (id, data, file) => {
 // 8. Eliminar un documento por ID
 const deleteDocumento = async (id) => {
   try {
+    // Primero buscamos el documento para obtener información del archivo
     const documento = await DocumentoCampo.findByPk(id);
     if (!documento) throw new Error("Documento no encontrado");
     
+    // Guardamos la ruta del archivo para eliminarlo después
+    const archivoUrl = documento.archivo_url;
+    
+    // Eliminar el registro de la base de datos usando destroy directo para evitar problemas
+    const result = await DocumentoCampo.destroy({
+      where: { id_documento: id }
+    });
+    
+    if (result === 0) throw new Error("No se pudo eliminar el documento");
+    
     // Eliminar archivo del sistema de archivos si existe y no es una URL externa
-    if (documento.archivo_url && documento.archivo_url.startsWith('/uploads/')) {
-      const filePath = path.join(__dirname, "..", documento.archivo_url);
+    if (archivoUrl && archivoUrl.startsWith('/uploads/')) {
+      const filePath = path.join(__dirname, "..", archivoUrl);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
     }
     
-    await documento.destroy();
-    return documento;
+    return { success: true, message: "Documento eliminado correctamente" };
   } catch (error) {
     throw new Error("Error al eliminar el documento: " + error.message);
   }
