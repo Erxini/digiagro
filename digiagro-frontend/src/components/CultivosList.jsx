@@ -26,7 +26,6 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
     ubicacion: ''
   });
   const [createForm, setCreateForm] = useState({
-    id_usuario: '',
     tipo: '',
     fecha_siembra: new Date().toISOString().split('T')[0],
     fecha_cosecha: '',
@@ -189,23 +188,82 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
 
   // Crear cultivo
   const handleCreateCultivo = async () => {
+    // Validar campos requeridos
+    const errors = {};
+    if (!createForm.tipo) errors.tipo = "El tipo de cultivo es obligatorio";
+    
+    // Validación específica para la fecha
+    if (!createForm.fecha_siembra) {
+      errors.fecha_siembra = "La fecha de siembra es obligatoria";
+    } else {
+      // Validar que la fecha tenga el formato correcto
+      const fechaSiembra = new Date(createForm.fecha_siembra);
+      if (isNaN(fechaSiembra.getTime())) {
+        errors.fecha_siembra = "El formato de fecha no es válido";
+      }
+      // Validar que la fecha no sea futura
+      else if (fechaSiembra > new Date()) {
+        errors.fecha_siembra = "La fecha de siembra no puede ser futura";
+      }
+    }
+    
+    // Validar fecha de cosecha si está presente
+    if (createForm.fecha_cosecha) {
+      const fechaCosecha = new Date(createForm.fecha_cosecha);
+      const fechaSiembra = new Date(createForm.fecha_siembra);
+      
+      if (isNaN(fechaCosecha.getTime())) {
+        errors.fecha_cosecha = "El formato de fecha no es válido";
+      }
+      // Validar que la fecha de cosecha sea posterior a la de siembra
+      else if (fechaCosecha < fechaSiembra) {
+        errors.fecha_cosecha = "La fecha de cosecha debe ser posterior a la de siembra";
+      }
+    }
+
+    if (!createForm.ubicacion) errors.ubicacion = "La ubicación es obligatoria";
+    
+    // Si hay errores, actualizar el estado y no continuar
+    if (Object.keys(errors).length > 0) {
+      setCreateFormErrors(errors);
+      return;
+    }
+
     try {
-      await post('cultivos', createForm);
+      // El ID de usuario se incluirá automáticamente desde useApi
+      await post('cultivos', createForm, {}, true);
       setShowCreateModal(false);
       setCreateForm({
-        id_usuario: '',
         tipo: '',
         fecha_siembra: new Date().toISOString().split('T')[0],
         fecha_cosecha: '',
         estado: 'Activo',
         ubicacion: ''
       });
+      setCreateFormErrors({});
       
       // Refrescar la lista de cultivos después de crear
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error('Error al crear cultivo:', error);
-      alert('Error al crear el cultivo.');
+      
+      // Intentar extraer el mensaje de error del backend
+      let errorMessage = "Error al crear el cultivo.";
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+        
+        // Detectar errores relacionados con la fecha
+        if (errorMessage.toLowerCase().includes('fecha')) {
+          setCreateFormErrors({
+            ...createFormErrors,
+            fecha_siembra: errorMessage
+          });
+          return;
+        }
+      }
+      
+      // Si el error no está relacionado con la fecha, mostrar alerta general
+      alert(errorMessage);
     }
   };
 
@@ -540,19 +598,6 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>ID Usuario</Form.Label>
-              <Form.Control
-                type="text"
-                value={createForm.id_usuario}
-                onChange={(e) => setCreateForm({ ...createForm, id_usuario: e.target.value })}
-                isInvalid={!!createFormErrors.id_usuario}
-              />
-              <Form.Control.Feedback type="invalid">
-                {createFormErrors.id_usuario}
-              </Form.Control.Feedback>
-            </Form.Group>
-
             <Form.Group className="mb-3">
               <Form.Label>Tipo de cultivo</Form.Label>
               <Form.Control

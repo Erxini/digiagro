@@ -28,6 +28,22 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
   };
 
   /**
+   * Obtener el ID del usuario autenticado
+   */
+  const getUserId = () => {
+    const userJson = localStorage.getItem('user');
+    if (userJson) {
+      try {
+        const user = JSON.parse(userJson);
+        return user.id; // Asumiendo que el campo es 'id'
+      } catch (e) {
+        console.error('Error al obtener el ID del usuario:', e);
+      }
+    }
+    return null;
+  };
+
+  /**
    * Realizar una petición GET
    * @param {string} endpoint - Endpoint de la API
    * @param {Object} options - Opciones adicionales para fetch
@@ -88,22 +104,37 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
    * @param {string} endpoint - Endpoint de la API
    * @param {Object} body - Cuerpo de la petición
    * @param {Object} options - Opciones adicionales para fetch
+   * @param {boolean} includeUserId - Si se debe incluir automáticamente el ID del usuario
    */
-  const post = async (endpoint, body, options = {}) => {
+  const post = async (endpoint, body, options = {}, includeUserId = false) => {
     setLoading(true);
     setError(null);
     
     try {
-      console.log(`Realizando POST a ${baseUrl}/${endpoint} con datos:`, body);
+      // Si se debe incluir el ID del usuario y el endpoint es relevante
+      let dataToSend = { ...body };
+      if (includeUserId || 
+          endpoint.includes('cultivos') || 
+          endpoint.includes('riegos') || 
+          endpoint.includes('suelo') || 
+          endpoint.includes('produccion') || 
+          endpoint.includes('tratamiento')) {
+        const userId = getUserId();
+        if (userId && !dataToSend.id_usuario) {
+          dataToSend.id_usuario = userId;
+        }
+      }
+      
+      console.log(`Realizando POST a ${baseUrl}/${endpoint} con datos:`, dataToSend);
       
       const response = await fetch(`${baseUrl}/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(), // Incluir automáticamente el token
+          ...getAuthHeaders(),
           ...options.headers
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(dataToSend),
         ...options
       });
       
@@ -152,20 +183,35 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
    * @param {string} endpoint - Endpoint de la API
    * @param {Object} body - Cuerpo de la petición
    * @param {Object} options - Opciones adicionales para fetch
+   * @param {boolean} includeUserId - Si se debe incluir automáticamente el ID del usuario
    */
-  const put = async (endpoint, body, options = {}) => {
+  const put = async (endpoint, body, options = {}, includeUserId = false) => {
     setLoading(true);
     setError(null);
     
     try {
+      // Si se debe incluir el ID del usuario y el endpoint es relevante
+      let dataToSend = { ...body };
+      if (includeUserId || 
+          endpoint.includes('cultivos') || 
+          endpoint.includes('riegos') || 
+          endpoint.includes('suelo') || 
+          endpoint.includes('produccion') || 
+          endpoint.includes('tratamiento')) {
+        const userId = getUserId();
+        if (userId && !dataToSend.id_usuario) {
+          dataToSend.id_usuario = userId;
+        }
+      }
+      
       const response = await fetch(`${baseUrl}/${endpoint}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(), // Incluir automáticamente el token
+          ...getAuthHeaders(),
           ...options.headers
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(dataToSend),
         ...options
       });
       
@@ -199,7 +245,7 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          ...getAuthHeaders(), // Incluir automáticamente el token
+          ...getAuthHeaders(),
           ...options.headers
         },
         ...options
@@ -231,6 +277,7 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
     data,
     loading,
     error,
+    getUserId,
     get,
     post,
     put,

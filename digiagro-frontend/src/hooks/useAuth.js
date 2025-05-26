@@ -37,7 +37,7 @@ export const useAuth = () => {
     }
   };
 
-  // Función para guardar la marca de tiempo al cerrar la sesión
+  // Función para guardar la marca de tiempo al cerrar la sesión o recargar la página
   const setLogoutTimestamp = () => {
     const timestamp = new Date().getTime();
     sessionStorage.setItem('logoutTimestamp', timestamp);
@@ -47,7 +47,7 @@ export const useAuth = () => {
   const isSessionExpired = () => {
     // La sesión se considera expirada si:
     // 1. No hay datos en localStorage, o
-    // 2. La página fue cerrada anteriormente (hay una marca de tiempo en sessionStorage)
+    // 2. La página fue cerrada o recargada (hay una marca de tiempo en sessionStorage)
     return sessionStorage.getItem('logoutTimestamp') !== null;
   };
 
@@ -86,16 +86,16 @@ export const useAuth = () => {
     }
   }, [isAuthenticated]); // Este efecto se ejecuta cuando cambia isAuthenticated
 
-  // Efecto para manejar el cierre de la ventana/pestaña
+  // Efecto para manejar el cierre o recarga de la ventana/pestaña
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (isAuthenticated) {
-        // Establecer la marca de tiempo cuando el usuario cierra la pestaña/navegador
+        // Establecer la marca de tiempo cuando el usuario cierra o recarga la pestaña/navegador
         setLogoutTimestamp();
       }
     };
 
-    // Registrar el evento para cuando el usuario cierre la ventana
+    // Registrar el evento para cuando el usuario cierre o recargue la ventana
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
@@ -103,7 +103,7 @@ export const useAuth = () => {
     };
   }, [isAuthenticated]);
 
-  // Efecto para cerrar sesión al recargar la página si se detecta que fue cerrada anteriormente
+  // Efecto para cerrar sesión al cargar la página si se detecta que fue cerrada o recargada anteriormente
   useEffect(() => {
     // Verificar si la sesión debe ser invalidada al cargar
     if (isSessionExpired()) {
@@ -112,15 +112,20 @@ export const useAuth = () => {
       
       // Si teníamos una sesión activa, cerrarla
       if (localStorage.getItem('token') && localStorage.getItem('user')) {
-        console.log('Sesión cerrada debido a cierre previo de la página');
+        console.log('Sesión cerrada debido a cierre previo o recarga de la página');
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         setUser(null);
         setToken(null);
         setIsAuthenticated(false);
+        
+        // Redirigir al home al recargar
+        if (location.pathname !== '/') {
+          navigate('/');
+        }
       }
     }
-  }, []);
+  }, [navigate, location.pathname]);
 
   // Comprobar si hay un usuario y token en localStorage al cargar la página
   useEffect(() => {
@@ -187,6 +192,9 @@ export const useAuth = () => {
         }
         
         console.log('Datos del usuario recibidos:', response.usuario); // Para depuración
+        
+        // Limpiar cualquier marca de cierre de sesión previa
+        sessionStorage.removeItem('logoutTimestamp');
         
         // Guardar usuario y token por separado
         localStorage.setItem('user', JSON.stringify(response.usuario));

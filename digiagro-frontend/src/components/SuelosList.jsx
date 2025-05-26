@@ -310,7 +310,7 @@ const SuelosList = ({ suelos = [], onClose, onRefresh }) => {
                     Cultivo {renderSortIndicator('id_cultivo')}
                   </th>
                   <th style={{cursor: 'pointer'}} onClick={() => handleSort('ph')}>
-                    Clase PH {renderSortIndicator('ph')}
+                    Tipo PH {renderSortIndicator('ph')}
                   </th>
                   <th style={{cursor: 'pointer'}} onClick={() => handleSort('humedad')}>
                     Humedad % {renderSortIndicator('humedad')}
@@ -454,7 +454,7 @@ const SuelosList = ({ suelos = [], onClose, onRefresh }) => {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>PH</Form.Label>
+              <Form.Label>Tipo PH</Form.Label>
               <Form.Control
                 type="number"
                 min="0"
@@ -544,7 +544,7 @@ const SuelosList = ({ suelos = [], onClose, onRefresh }) => {
             </Form.Group>
             
             <Form.Group className="mb-3">
-              <Form.Label>PH</Form.Label>
+              <Form.Label>Tipo PH</Form.Label>
               <Form.Control
                 type="number"
                 min="0"

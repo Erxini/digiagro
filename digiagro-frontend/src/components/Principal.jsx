@@ -60,7 +60,27 @@ const Principal = () => {
     setAlertMessage
   } = usePrincipal();
 
-  const { userData } = useAuth();
+  const { isAuthenticated } = useAuth();
+
+  // Efecto para detectar recarga de página (F5) y redirigir a home
+  useEffect(() => {
+    // Crear una bandera en sessionStorage para detectar recargas
+    if (!sessionStorage.getItem('pageLoaded')) {
+      sessionStorage.setItem('pageLoaded', 'true');
+    } else {
+      // Si la bandera ya existe, significa que es una recarga
+      // Comprobamos si el usuario está autenticado
+      if (!isAuthenticated) {
+        console.log('Recarga detectada y sesión no autenticada. Redirigiendo a home...');
+        navigate('/');
+      }
+    }
+
+    // Limpiar la bandera cuando el componente se desmonte
+    return () => {
+      sessionStorage.removeItem('pageLoaded');
+    };
+  }, [navigate, isAuthenticated]);
 
   // Estado para el cuaderno de campo
   const [mostrarCuadernoCampo, setMostrarCuadernoCampo] = useState(false);
