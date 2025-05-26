@@ -12,6 +12,17 @@ const Cuaderno = () => {
   });
   const [resultado, setResultado] = useState(null);
 
+  // Función para reiniciar la calculadora
+  const reiniciarCalculadora = () => {
+    setCalculadora({
+      producto: '',
+      superficie: 0,
+      cultivo: '',
+      tipoProducto: calculadora.tipoProducto, // Mantener el tipo de producto actual
+    });
+    setResultado(null); // Limpiar los resultados
+  };
+
   // Datos de ejemplo de productos permitidos
   const productosPermitidos = {
     ecologico: [
@@ -84,7 +95,9 @@ const Cuaderno = () => {
     const { name, value } = e.target;
     setCalculadora({
       ...calculadora,
-      [name]: name === 'superficie' ? parseFloat(value) || 0 : value
+      [name]: name === 'superficie' ? 
+        // Si el campo está vacío y el usuario está escribiendo, usamos el valor tal cual (vacío)
+        (value === '' ? '' : parseFloat(value) || 0) : value
     });
   };
 
@@ -288,8 +301,9 @@ const Cuaderno = () => {
                       <Form.Control 
                         type="number" 
                         name="superficie"
-                        value={calculadora.superficie} 
+                        value={calculadora.superficie === 0 ? '' : calculadora.superficie} 
                         onChange={handleInputChange}
+                        placeholder="0"
                         min="0"
                       />
                     </Form.Group>
@@ -342,6 +356,16 @@ const Cuaderno = () => {
                     respetando los plazos de seguridad. Utilizar el equipo de protección adecuado durante 
                     la aplicación.
                   </p>
+                  
+                  {/* Botón para realizar un nuevo cálculo */}
+                  <div className="d-grid gap-2 mt-4">
+                    <Button 
+                      variant="outline-primary" 
+                      onClick={reiniciarCalculadora}
+                    >
+                      Nuevo Cálculo
+                    </Button>
+                  </div>
                 </div>
               )}
               
