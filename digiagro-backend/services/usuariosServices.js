@@ -185,8 +185,22 @@ const deleteAllUsuarios = async (excludeAdmins = false) => {
 // Nueva función para verificar un token JWT
 const verifyToken = (token) => {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('Token decodificado:', decoded);
+    
+    // Normalizamos el formato para asegurar consistencia
+    // Si el token tiene userId pero no id, agregamos id
+    if (decoded.userId && !decoded.id) {
+      decoded.id = decoded.userId;
+    }
+    // Si el token tiene id pero no userId, agregamos userId
+    else if (decoded.id && !decoded.userId) {
+      decoded.userId = decoded.id;
+    }
+    
+    return decoded;
   } catch (error) {
+    console.error('Error al verificar token:', error);
     throw new Error("Token inválido o expirado");
   }
 }
@@ -242,6 +256,27 @@ const recuperarPassword = async (email) => {
   }
 };
 
+// Nueva función para que un usuario elimine su propia cuenta
+const deleteOwnAccount = async (userId) => {
+  try {
+    const usuario = await Usuario.findByPk(userId);
+    if (!usuario) {
+      throw new Error("Usuario no encontrado");
+    }
+    
+    // Gracias a las relaciones CASCADE definidas en associations.js,
+    // la eliminación del usuario borrará automáticamente todos sus:
+    // - Cultivos (y por cascada también riegos, producciones y suelos)
+    // - ActividadCampo
+    // - TratamientoCampo
+    // - DocumentoCampo
+    
+    return await usuario.destroy();
+  } catch (error) {
+    throw new Error("Error al eliminar la cuenta y datos asociados: " + error.message);
+  }
+};
+
 module.exports = { 
   getAllUsuarios,
   getUsuarioById,
@@ -254,5 +289,6 @@ module.exports = {
   deleteAllUsuarios,
   verifyToken,
   countUsuarios,
-  recuperarPassword
+  recuperarPassword,
+  deleteOwnAccount
 };

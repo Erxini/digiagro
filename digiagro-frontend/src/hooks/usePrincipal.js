@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { useApi } from './useApi';
 
 /**
@@ -7,7 +6,6 @@ import { useApi } from './useApi';
  * @returns {Object} - Objeto con estados y funciones para el panel principal
  */
 export const usePrincipal = () => {
-  const { user } = useAuth();
   const { get } = useApi();
   
   // Estados
@@ -17,52 +15,47 @@ export const usePrincipal = () => {
   const [produccionData, setProduccionData] = useState([]);
   const [activeSection, setActiveSection] = useState(null);
   const [userName, setUserName] = useState('');
-  const [userId, setUserId] = useState(null);
-  const [lastUpdate, setLastUpdate] = useState(new Date().toLocaleString());
-  const [isLoading, setIsLoading] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const [alertMessage, setAlertMessage] = useState(null);
   const [alertType, setAlertType] = useState('info');
 
   // Obtener información del usuario desde localStorage si no está disponible a través del hook
   useEffect(() => {
-    if (user) {
-      setUserName(user.nombre || '');
-      setUserId(user.id || null);
-    } else {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          if (userData) {
-            setUserName(userData.nombre || '');
-            setUserId(userData.id || null);
-          }
-        } catch (error) {
-          console.error('Error al parsear datos del usuario:', error);
-        }
-      }
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUserName(user.nombre || 'Usuario');
     }
-  }, [user]);
+  }, []);
 
-  // Obtener datos iniciales cuando el componente se monta y cuando cambia el userId
+  // Cargar todos los datos iniciales
   useEffect(() => {
-    if (userId) {
-      fetchInitialData();
-    }
-  }, [userId]);
+    fetchAllData();
+  }, []);
 
-  // Función para cargar todos los datos iniciales
-  const fetchInitialData = async () => {
+  // Función para cargar todos los datos en paralelo
+  const fetchAllData = async () => {
     setIsLoading(true);
     try {
-      await Promise.all([
-        obtenerCultivos(),
-        obtenerRiegos(),
-        obtenerSuelos(),
-        obtenerProducciones()
+      // Ejecutamos las llamadas en paralelo para mejorar el rendimiento
+      const [cultivosResult, riegosResult, suelosResult, produccionResult] = await Promise.all([
+        get('cultivos'),
+        get('riegos'),
+        get('suelo'),
+        get('produccion')
       ]);
+      
+      // Actualizamos todos los estados
+      setCultivosData(cultivosResult);
+      setRiegosData(riegosResult);
+      setSueloData(suelosResult);
+      setProduccionData(produccionResult);
+
+      // Actualizamos la fecha de la última actualización
+      setLastUpdate(new Date().toLocaleString());
     } catch (error) {
-      console.error('Error al obtener datos iniciales:', error);
+      console.error('Error al cargar datos:', error);
       showAlert('Error al cargar los datos. Por favor, intente nuevamente.', 'danger');
     } finally {
       setIsLoading(false);
@@ -73,100 +66,89 @@ export const usePrincipal = () => {
   const showAlert = (message, type = 'info') => {
     setAlertMessage(message);
     setAlertType(type);
-    // Ocultar el mensaje después de 5 segundos
+    
+    // Limpiar la alerta después de 5 segundos
     setTimeout(() => {
       setAlertMessage(null);
     }, 5000);
   };
 
-  // Función para cambiar la sección activa
+  // Obtener cultivos
+  const obtenerCultivos = async () => {
+    try {
+      const result = await get('cultivos');
+      setCultivosData(result);
+      setLastUpdate(new Date().toLocaleString());
+      return result; // Devolvemos el resultado para uso opcional
+    } catch (error) {
+      console.error('Error al obtener cultivos:', error);
+      showAlert('Error al actualizar cultivos', 'danger');
+      return null;
+    }
+  };
+
+  // Obtener riegos
+  const obtenerRiegos = async () => {
+    try {
+      const result = await get('riegos');
+      setRiegosData(result);
+      setLastUpdate(new Date().toLocaleString());
+      return result;
+    } catch (error) {
+      console.error('Error al obtener riegos:', error);
+      showAlert('Error al actualizar riegos', 'danger');
+      return null;
+    }
+  };
+
+  // Obtener suelos
+  const obtenerSuelos = async () => {
+    try {
+      const result = await get('suelo');
+      setSueloData(result);
+      setLastUpdate(new Date().toLocaleString());
+      return result;
+    } catch (error) {
+      console.error('Error al obtener suelos:', error);
+      showAlert('Error al actualizar suelos', 'danger');
+      return null;
+    }
+  };
+
+  // Obtener producciones
+  const obtenerProducciones = async () => {
+    try {
+      const result = await get('produccion');
+      setProduccionData(result);
+      setLastUpdate(new Date().toLocaleString());
+      return result;
+    } catch (error) {
+      console.error('Error al obtener producciones:', error);
+      showAlert('Error al actualizar producciones', 'danger');
+      return null;
+    }
+  };
+
+  // Cambiar sección activa
   const changeSection = (section) => {
     setActiveSection(section);
   };
 
-  // Función para obtener los cultivos del usuario actual
-  const obtenerCultivos = async () => {
-    if (!userId) return;
-    
+  // Actualizar todos los datos relacionados (función nueva para sincronización)
+  const refreshAllRelatedData = async () => {
     try {
-      const response = await get(`cultivos?usuarioId=${userId}`);
-      if (Array.isArray(response)) {
-        setCultivosData(response);
-        setLastUpdate(new Date().toLocaleString());
-      } else {
-        setCultivosData([]);
-        console.warn('La respuesta de cultivos no es un array:', response);
-      }
+      showAlert('Actualizando datos...', 'info');
+      await Promise.all([
+        obtenerCultivos(),
+        obtenerRiegos(),
+        obtenerSuelos(),
+        obtenerProducciones()
+      ]);
+      showAlert('Todos los datos actualizados correctamente', 'success');
     } catch (error) {
-      console.error('Error al obtener cultivos:', error);
-      showAlert('Error al obtener los cultivos.', 'danger');
-      setCultivosData([]);
+      console.error('Error al actualizar todos los datos:', error);
+      showAlert('Error al actualizar los datos', 'danger');
     }
-  };
-
-  // Función para obtener los riegos del usuario actual
-  const obtenerRiegos = async () => {
-    if (!userId) return;
-    
-    try {
-      const response = await get(`riegos?usuarioId=${userId}`);
-      if (Array.isArray(response)) {
-        setRiegosData(response);
-        setLastUpdate(new Date().toLocaleString());
-      } else {
-        setRiegosData([]);
-        console.warn('La respuesta de riegos no es un array:', response);
-      }
-    } catch (error) {
-      console.error('Error al obtener riegos:', error);
-      showAlert('Error al obtener los riegos.', 'danger');
-      setRiegosData([]);
-    }
-  };
-
-  // Función para obtener los datos de suelo del usuario actual
-  const obtenerSuelos = async () => {
-    if (!userId) return;
-    
-    try {
-      const response = await get(`suelo?usuarioId=${userId}`);
-      if (Array.isArray(response)) {
-        setSueloData(response);
-        setLastUpdate(new Date().toLocaleString());
-      } else {
-        setSueloData([]);
-        console.warn('La respuesta de suelos no es un array:', response);
-      }
-    } catch (error) {
-      console.error('Error al obtener datos de suelo:', error);
-      showAlert('Error al obtener datos de suelo.', 'danger');
-      setSueloData([]);
-    }
-  };
-
-  // Función para obtener las producciones del usuario actual
-  const obtenerProducciones = async () => {
-    if (!userId) return;
-    
-    try {
-      const response = await get(`produccion?usuarioId=${userId}`);
-      if (Array.isArray(response)) {
-        setProduccionData(response);
-        setLastUpdate(new Date().toLocaleString());
-      } else {
-        setProduccionData([]);
-        console.warn('La respuesta de producciones no es un array:', response);
-      }
-    } catch (error) {
-      console.error('Error al obtener datos de producción:', error);
-      showAlert('Error al obtener datos de producción.', 'danger');
-      setProduccionData([]);
-    }
-  };
-
-  // Refrescar todos los datos
-  const refreshAllData = async () => {
-    await fetchInitialData();
   };
 
   return {
@@ -177,7 +159,6 @@ export const usePrincipal = () => {
     produccionData,
     activeSection,
     userName,
-    userId,
     lastUpdate,
     isLoading,
     alertMessage,
@@ -190,7 +171,7 @@ export const usePrincipal = () => {
     obtenerProducciones,
     showAlert,
     changeSection,
-    refreshAllData,
-    setAlertMessage
+    setAlertMessage,
+    refreshAllRelatedData // Exportamos la nueva función
   };
 };

@@ -429,15 +429,15 @@ const ProduccionList = ({ producciones, onClose, onRefresh }) => {
             <span className="text-muted me-3">
               Mostrando {filteredProducciones.length} de {producciones?.length || 0} producciones
             </span>
-            {/* Mostrar botón de eliminar todos solo si NO es técnico */}
-            {!isTecnico && (
+            {/* Mostrar botón de eliminar todos solo si es administrador */}
+            {user?.rol === 'Admin' && (
               <Button 
                 variant="outline-danger" 
                 size="sm" 
                 onClick={() => setShowDeleteAllModal(true)}
               >
                 <i className="fas fa-trash-alt me-1"></i>
-                Eliminar todas las producciones
+                Eliminar todos los registros
               </Button>
             )}
           </div>

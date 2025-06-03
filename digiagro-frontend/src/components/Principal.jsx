@@ -249,6 +249,16 @@ const Principal = () => {
     );
   };
 
+  // Función para la sincronización global de datos
+  const refreshAllRelatedData = () => {
+    // Lógica para refrescar todos los datos relacionados
+    // Por ejemplo, podríamos volver a cargar los cultivos, riegos y suelos
+    obtenerCultivos();
+    obtenerRiegos();
+    obtenerSuelos();
+    obtenerProducciones();
+  };
+
   // Renderizado condicional según la sección activa
   const renderContent = () => {
     if (showPerfil) {
@@ -262,6 +272,7 @@ const Principal = () => {
             cultivos={cultivosData} 
             onClose={() => changeSection(null)} 
             onRefresh={obtenerCultivos}
+            onRefreshAll={refreshAllRelatedData}  // Añadimos la nueva función de sincronización global
           />
         );
       

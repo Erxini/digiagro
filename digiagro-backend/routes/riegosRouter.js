@@ -1,5 +1,6 @@
 const express = require("express");
 const RiegosController = require("../controllers/riegosController");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -30,7 +31,10 @@ router.get("/cantidad/:cantidad", RiegosController.getRiegosByCantidadAgua);
 // 9.Eliminar un riego por ID
 router.delete("/:id", RiegosController.deleteRiego);
 
-// 10.Eliminar todos los riegos
-router.delete("/", RiegosController.deleteAllRiegos);
+// 10.Eliminar todos los riegos (con restricciones de roles)
+router.delete("/", authMiddleware, RiegosController.deleteAllRiegos);
+
+// 11.Eliminar riegos de un usuario específico
+router.delete("/usuario/:userId", authMiddleware, RiegosController.deleteRiegosByUsuario);
 
 module.exports = router;

@@ -29,6 +29,9 @@ const RiegosList = ({ riegos = [], onClose, onRefresh }) => {
   });
   const [formErrors, setFormErrors] = useState({});
   const [createFormErrors, setCreateFormErrors] = useState({});
+  const [resultMessage, setResultMessage] = useState('');
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultSuccess, setResultSuccess] = useState(false);
   
   const { del, put, post } = useApi();
 
@@ -120,14 +123,37 @@ const RiegosList = ({ riegos = [], onClose, onRefresh }) => {
   // Eliminar todos los riegos
   const handleDeleteAllRiegos = async () => {
     try {
-      await del('riegos');
+      // Cerrar el modal de confirmación antes de iniciar la operación
       setShowDeleteAllModal(false);
       
-      // Refrescar la lista de riegos después de eliminar todos
-      if (onRefresh) onRefresh();
+      // Obtener el ID del usuario
+      const userId = user?.id;
+      if (!userId) {
+        alert("Error: No se pudo identificar al usuario.");
+        return;
+      }
+      
+      // Determinar el endpoint según el rol del usuario
+      const endpoint = user?.rol === 'Agricultor' ? `riegos/usuario/${userId}` : 'riegos';
+      console.log(`Usando endpoint: ${endpoint}`);
+      
+      // Hacer la solicitud de eliminación
+      const resultado = await del(endpoint);
+      console.log('Respuesta del servidor:', resultado);
+      
+      // Considerar éxito incluso si la respuesta está vacía o no tiene el formato esperado
+      const mensaje = user?.rol === 'Admin' 
+        ? "Todos los riegos han sido eliminados correctamente." 
+        : `Los riegos han sido eliminados correctamente.`;
+      
+      alert(mensaje);
+      
+      // Refrescar la lista de riegos después de eliminar
+      if (onRefresh) await onRefresh();
+      
     } catch (error) {
-      console.error('Error al eliminar todos los riegos:', error);
-      alert('Error al eliminar todos los riegos.');
+      console.error('Error al eliminar riegos:', error);
+      alert('Error al eliminar los riegos: ' + (error.message || 'Error desconocido'));
     }
   };
 
@@ -345,8 +371,8 @@ const RiegosList = ({ riegos = [], onClose, onRefresh }) => {
             <span className="text-muted me-3">
               Mostrando {filteredRiegos.length} de {riegos?.length || 0} riegos
             </span>
-            {/* Mostrar botón de eliminar todos solo si NO es técnico */}
-            {!isTecnico && (
+            {/* Mostrar botón de eliminar todos solo si es administrador */}
+            {user?.rol === 'Admin' && (
               <Button 
                 variant="outline-danger" 
                 size="sm" 
@@ -400,14 +426,27 @@ const RiegosList = ({ riegos = [], onClose, onRefresh }) => {
       {/* Modal de confirmación para eliminar todos los riegos */}
       <Modal show={showDeleteAllModal} onHide={() => setShowDeleteAllModal(false)} centered>
         <Modal.Header closeButton className="bg-danger text-white">
-          <Modal.Title>¡Atención! Eliminar todos los riegos</Modal.Title>
+          <Modal.Title>
+            {user?.rol === 'Admin' 
+              ? '¡Atención! Eliminar todos los riegos' 
+              : '¡Atención! Eliminar mis riegos'}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="text-center mb-3">
             <i className="fas fa-exclamation-triangle fa-3x text-warning"></i>
           </div>
-          <p className="fw-bold">Esta acción eliminará TODOS los riegos del sistema.</p>
-          <p>Esta operación es irreversible y podría afectar gravemente el funcionamiento de la aplicación.</p>
+          {user?.rol === 'Admin' ? (
+            <>
+              <p className="fw-bold">Esta acción eliminará TODOS los riegos del sistema.</p>
+              <p>Esta operación es irreversible y podría afectar gravemente el funcionamiento de la aplicación.</p>
+            </>
+          ) : (
+            <>
+              <p className="fw-bold">Esta acción eliminará todos los riegos asociados a sus cultivos.</p>
+              <p>Esta operación es irreversible y no afectará los riegos de otros usuarios.</p>
+            </>
+          )}
           <p>¿Está completamente seguro de que desea continuar?</p>
         </Modal.Body>
         <Modal.Footer>
@@ -415,7 +454,7 @@ const RiegosList = ({ riegos = [], onClose, onRefresh }) => {
             Cancelar
           </Button>
           <Button variant="danger" onClick={handleDeleteAllRiegos}>
-            Sí, eliminar todos
+            {user?.rol === 'Admin' ? 'Sí, eliminar todos' : 'Sí, eliminar mis riegos'}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -541,6 +580,28 @@ const RiegosList = ({ riegos = [], onClose, onRefresh }) => {
           </Button>
           <Button variant="primary" onClick={handleCreateRiego}>
             Crear Riego
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de resultado de operación */}
+      <Modal show={showResultModal} onHide={() => setShowResultModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{resultSuccess ? 'Operación exitosa' : 'Error en la operación'}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="text-center">
+            {resultSuccess ? (
+              <i className="fas fa-check-circle fa-3x text-success"></i>
+            ) : (
+              <i className="fas fa-exclamation-triangle fa-3x text-danger"></i>
+            )}
+          </p>
+          <p className="text-center fw-bold">{resultMessage}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowResultModal(false)}>
+            Cerrar
           </Button>
         </Modal.Footer>
       </Modal>

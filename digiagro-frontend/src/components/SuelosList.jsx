@@ -371,8 +371,8 @@ const SuelosList = ({ suelos = [], onClose, onRefresh }) => {
             <span className="text-muted me-3">
               Mostrando {filteredSuelos.length} de {suelos?.length || 0} análisis de suelo
             </span>
-            {/* Mostrar botón de eliminar todos solo si NO es técnico */}
-            {!isTecnico && (
+            {/* Mostrar botón de eliminar todos solo si es administrador */}
+            {user?.rol === 'Admin' && (
               <Button 
                 variant="outline-danger" 
                 size="sm" 

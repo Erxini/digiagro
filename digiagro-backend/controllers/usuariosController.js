@@ -9,7 +9,8 @@ const {
   deleteUsuario,
   deleteAllUsuarios,
   countUsuarios,
-  recuperarPassword
+  recuperarPassword,
+  deleteOwnAccount // Asegúrate de que esta función esté importada
 } = require("../services/usuariosServices");
 
 
@@ -202,8 +203,9 @@ const eliminarCuentaPropia = async (req, res) => {
     // El id del usuario viene del token de autenticación
     const userId = req.user.id;
     
-    await deleteUsuario(userId);
-    res.status(200).json({ message: "Cuenta eliminada correctamente" });
+    // Usamos la nueva función que elimina el usuario y todos sus datos asociados
+    await deleteOwnAccount(userId);
+    res.status(200).json({ message: "Cuenta y todos los datos asociados eliminados correctamente" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

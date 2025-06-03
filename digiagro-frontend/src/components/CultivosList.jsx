@@ -4,7 +4,7 @@ import { useApi } from '../hooks/useApi';
 import DetallesCultivo from './DetallesCultivo';
 import { useAuth } from '../hooks/useAuth';
 
-const CultivosList = ({ cultivos, onClose, onRefresh }) => {
+const CultivosList = ({ cultivos, onClose, onRefresh, onRefreshAll }) => {
   // Obtener información del usuario para control de acceso
   const { user } = useAuth();
   const isTecnico = user?.rol === 'Tec';
@@ -18,6 +18,9 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultMessage, setResultMessage] = useState('');
+  const [resultSuccess, setResultSuccess] = useState(true);
   const [editForm, setEditForm] = useState({
     tipo: '',
     fecha_siembra: '',
@@ -126,29 +129,107 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
     if (!selectedCultivo) return;
     
     try {
-      await del(`cultivos/${selectedCultivo.id_cultivo}`);
+      // Mostrar que se está procesando la solicitud
       setShowDeleteModal(false);
+      setResultSuccess(true);
+      setResultMessage("Eliminando el cultivo y sus datos asociados...");
+      setShowResultModal(true);
+      
+      // Realizar la solicitud DELETE
+      const resultado = await del(`cultivos/${selectedCultivo.id_cultivo}`);
+      
+      // Actualizar el mensaje según la respuesta
+      if (resultado && resultado.success) {
+        setResultSuccess(true);
+        setResultMessage(resultado.mensaje || "Cultivo eliminado correctamente.");
+        
+        // Mostrar detalles sobre los datos eliminados
+        if (resultado.riegosEliminados > 0 || resultado.suelosEliminados > 0 || resultado.produccionEliminada > 0) {
+          setResultMessage(
+            `Cultivo eliminado correctamente junto con ${resultado.riegosEliminados} riegos, ${resultado.suelosEliminados} suelos y ${resultado.produccionEliminada} registros de producción asociados.`
+          );
+        }
+      } else {
+        setResultSuccess(true);
+        setResultMessage("Cultivo eliminado correctamente. Actualice la lista para ver los cambios.");
+      }
+      
       setSelectedCultivo(null);
       
-      // Refrescar la lista de cultivos después de eliminar
-      if (onRefresh) onRefresh();
+      // IMPORTANTE: Actualizar todos los datos relacionados en la interfaz
+      if (onRefreshAll) {
+        // Si existe onRefreshAll (nueva función), la usamos para actualizar todos los datos relacionados
+        await onRefreshAll();
+      } else if (onRefresh) {
+        // Como mínimo actualizamos la lista de cultivos
+        await onRefresh();
+      }
+      
     } catch (error) {
       console.error('Error al eliminar cultivo:', error);
-      alert('Error al eliminar el cultivo.');
+      setResultSuccess(false);
+      setResultMessage(error.message || "Error al eliminar el cultivo.");
+      setShowResultModal(true);
     }
   };
 
   // Eliminar todos los cultivos
   const handleDeleteAllCultivos = async () => {
     try {
-      await del('cultivos');
+      // Mostrar un mensaje de que se está procesando
       setShowDeleteAllModal(false);
+      setResultSuccess(true);
+      setResultMessage("Procesando la solicitud de eliminación de todos los cultivos...");
+      setShowResultModal(true);
       
-      // Refrescar la lista de cultivos después de eliminar todos
-      if (onRefresh) onRefresh();
+      // Obtener el ID del usuario
+      const userId = user?.id;
+      if (!userId) {
+        setResultSuccess(false);
+        setResultMessage("Error: No se pudo identificar al usuario.");
+        return;
+      }
+      
+      console.log('Usuario actual:', user);
+      console.log('ID del usuario:', userId);
+      
+      // Usar el endpoint más directo para esta operación
+      const endpoint = `cultivos/usuario/${userId}`;
+      console.log('Endpoint utilizado:', endpoint);
+      
+      // Hacer la solicitud de eliminación
+      const resultado = await del(endpoint);
+      console.log('Resultado de la operación:', resultado);
+      
+      // Actualizar el mensaje según el resultado
+      if (resultado && resultado.success) {
+        setResultSuccess(true);
+        setResultMessage(resultado.mensaje || `Se han eliminado ${resultado.eliminados || 0} cultivos correctamente.`);
+        
+        // Mostrar detalles sobre los datos eliminados si están disponibles
+        if (resultado.riegosEliminados > 0 || resultado.suelosEliminados > 0 || resultado.produccionEliminada > 0) {
+          setResultMessage(
+            `Se han eliminado ${resultado.eliminados || 0} cultivos junto con ${resultado.riegosEliminados || 0} riegos, ${resultado.suelosEliminados || 0} suelos y ${resultado.produccionEliminada || 0} registros de producción asociados.`
+          );
+        }
+      } else {
+        setResultSuccess(true);
+        setResultMessage('Operación completada. Los datos se han actualizado correctamente.');
+      }
+      
+      // IMPORTANTE: Actualizar todos los datos relacionados en la interfaz
+      if (onRefreshAll) {
+        // Si existe onRefreshAll (nueva función), la usamos para actualizar todos los datos relacionados
+        await onRefreshAll();
+      } else if (onRefresh) {
+        // Como mínimo actualizamos la lista de cultivos
+        await onRefresh();
+      }
+      
     } catch (error) {
-      console.error('Error al eliminar todos los cultivos:', error);
-      alert('Error al eliminar todos los cultivos.');
+      console.error('Error al eliminar cultivos:', error);
+      setResultSuccess(false);
+      setResultMessage(error.message || 'Error al eliminar los cultivos.');
     }
   };
 
@@ -441,7 +522,7 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
                 onClick={() => setShowDeleteAllModal(true)}
               >
                 <i className="fas fa-trash-alt me-1"></i>
-                Eliminar todos los cultivos
+                Eliminar todos mis cultivos
               </Button>
             )}
           </div>
@@ -488,14 +569,14 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
       {/* Modal de confirmación para eliminar todos los cultivos */}
       <Modal show={showDeleteAllModal} onHide={() => setShowDeleteAllModal(false)} centered>
         <Modal.Header closeButton className="bg-danger text-white">
-          <Modal.Title>¡Atención! Eliminar todos los cultivos</Modal.Title>
+          <Modal.Title>¡Atención! Eliminar todos mis cultivos</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="text-center mb-3">
             <i className="fas fa-exclamation-triangle fa-3x text-warning"></i>
           </div>
-          <p className="fw-bold">Esta acción eliminará TODOS los cultivos del sistema.</p>
-          <p>Esta operación es irreversible y podría afectar gravemente el funcionamiento de la aplicación.</p>
+          <p className="fw-bold">Esta acción eliminará TODOS sus cultivos registrados.</p>
+          <p>Esta operación eliminará también los riegos, suelos y producciones asociados a sus cultivos.</p>
           <p>¿Está completamente seguro de que desea continuar?</p>
         </Modal.Body>
         <Modal.Footer>
@@ -503,7 +584,7 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
             Cancelar
           </Button>
           <Button variant="danger" onClick={handleDeleteAllCultivos}>
-            Sí, eliminar todos
+            Sí, eliminar mis cultivos
           </Button>
         </Modal.Footer>
       </Modal>
@@ -670,6 +751,24 @@ const CultivosList = ({ cultivos, onClose, onRefresh }) => {
           </Button>
           <Button variant="success" onClick={handleCreateCultivo}>
             Crear Cultivo
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal de resultados de operaciones */}
+      <Modal show={showResultModal} onHide={() => setShowResultModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Resultado de la operación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className={`text-center ${resultSuccess ? 'text-success' : 'text-danger'}`}>
+            <i className={`fas fa-${resultSuccess ? 'check-circle' : 'exclamation-triangle'} fa-3x mb-3`}></i>
+            <p className="mb-0">{resultMessage}</p>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowResultModal(false)}>
+            Cerrar
           </Button>
         </Modal.Footer>
       </Modal>

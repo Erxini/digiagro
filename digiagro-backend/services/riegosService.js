@@ -1,5 +1,7 @@
 const Riego = require("../database/models/riegos");
+const Cultivo = require("../database/models/cultivos");
 const { Op } = require("sequelize");
+const sequelize = require("../database/db");
 
   // 1.Obtener todos los riegos
   const getAllRiegos = async () => {
@@ -116,6 +118,90 @@ const { Op } = require("sequelize");
             throw new Error("Error al eliminar todos los riegos: " + error.message);
         }
     };
+  // 11. Eliminar riegos por usuario (solo los asociados a sus cultivos)
+  const deleteRiegosByUsuario = async (userId) => {
+    try {
+      console.log(`Intentando eliminar riegos para el usuario ${userId}`);
+      
+      // Obtener los IDs de los cultivos que pertenecen al usuario
+      const { QueryTypes } = require('sequelize');
+      
+      // Ejecutar una consulta directa para obtener los cultivos del usuario
+      const cultivosIds = await sequelize.query(
+        'SELECT id_cultivo FROM cultivos WHERE id_usuario = :userId',
+        {
+          replacements: { userId },
+          type: QueryTypes.SELECT
+        }
+      );
+      
+      // Extraer los IDs en un array simple
+      const cultivosArray = cultivosIds.map(c => c.id_cultivo);
+      console.log(`Cultivos encontrados para el usuario ${userId}: ${cultivosArray.join(', ') || 'ninguno'}`);
+      
+      // Si no hay cultivos, no hay riegos para eliminar
+      if (cultivosArray.length === 0) {
+        return {
+          eliminados: 0,
+          mensaje: "No se encontraron cultivos ni riegos asociados para eliminar."
+        };
+      }
+      
+      // Primero verificamos cuántos riegos hay asociados a estos cultivos
+      const riegosConteo = await sequelize.query(
+        'SELECT COUNT(*) as total FROM riegos WHERE id_cultivo IN (:cultivosArray)',
+        {
+          replacements: { cultivosArray },
+          type: QueryTypes.SELECT
+        }
+      );
+      
+      const totalRiegos = parseInt(riegosConteo[0]?.total || 0);
+      console.log(`Total de riegos encontrados para eliminar: ${totalRiegos}`);
+      
+      if (totalRiegos === 0) {
+        return {
+          eliminados: 0,
+          mensaje: "No se encontraron riegos asociados a sus cultivos."
+        };
+      }
+      
+      // Eliminar los riegos usando una consulta SQL directa
+      await sequelize.query(
+        'DELETE FROM riegos WHERE id_cultivo IN (:cultivosArray)',
+        {
+          replacements: { cultivosArray },
+          type: QueryTypes.DELETE
+        }
+      );
+      
+      // Verificar que realmente se eliminaron
+      const verificacion = await sequelize.query(
+        'SELECT COUNT(*) as restantes FROM riegos WHERE id_cultivo IN (:cultivosArray)',
+        {
+          replacements: { cultivosArray },
+          type: QueryTypes.SELECT
+        }
+      );
+      
+      const riegosRestantes = parseInt(verificacion[0]?.restantes || 0);
+      
+      if (riegosRestantes > 0) {
+        console.error(`ERROR: No se pudieron eliminar todos los riegos. Quedan ${riegosRestantes}`);
+        throw new Error("Error al eliminar todos los riegos asociados");
+      }
+      
+      console.log(`Se eliminaron ${totalRiegos} riegos asociados a los cultivos del usuario ${userId}`);
+      
+      return {
+        eliminados: totalRiegos,
+        mensaje: `Se han eliminado ${totalRiegos} registros de riego correctamente.`
+      };
+    } catch (error) {
+      console.error('ERROR al eliminar riegos:', error);
+      throw new Error(`Error al eliminar los riegos: ${error.message}`);
+    }
+  };
 
 module.exports = {
     getAllRiegos,
@@ -127,5 +213,6 @@ module.exports = {
     updateRiegoByCultivoId,
     getRiegosByFecha,
     getRiegosByCantidadAgua,
-    deleteAllRiegos
+    deleteAllRiegos,
+    deleteRiegosByUsuario
 };

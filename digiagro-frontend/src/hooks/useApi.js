@@ -35,7 +35,11 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
     if (userJson) {
       try {
         const user = JSON.parse(userJson);
-        return user.id; // Asumiendo que el campo es 'id'
+        console.log('Info de usuario en localStorage:', user);
+        // Intentar con diferentes propiedades posibles para el ID
+        const userId = user.id || user.userId || user.id_usuario;
+        console.log('ID de usuario detectado:', userId);
+        return userId;
       } catch (e) {
         console.error('Error al obtener el ID del usuario:', e);
       }
@@ -241,6 +245,9 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
     setError(null);
     
     try {
+      console.log(`Realizando DELETE a ${baseUrl}/${endpoint}`);
+      console.log('Headers de autenticación:', getAuthHeaders());
+      
       const response = await fetch(`${baseUrl}/${endpoint}`, {
         method: 'DELETE',
         headers: {
@@ -251,21 +258,52 @@ export const useApi = (baseUrl = 'http://localhost:3000/digiagro') => {
         ...options
       });
       
+      console.log(`Respuesta DELETE de ${endpoint} - Status:`, response.status);
+      
+      // Intentar leer la respuesta como texto primero
+      const responseText = await response.text();
+      console.log(`Respuesta completa DELETE de ${endpoint}:`, responseText);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error en la petición');
+        let errorMessage = `Error ${response.status}: ${response.statusText}`;
+        
+        // Intentar parsear el error como JSON si existe
+        if (responseText) {
+          try {
+            const errorData = JSON.parse(responseText);
+            if (errorData.error) {
+              errorMessage = errorData.error;
+            }
+          } catch (e) {
+            console.error('Error al parsear respuesta de error:', e);
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
       
       // Para respuestas 204 No Content
       if (response.status === 204) {
+        console.log('Operación DELETE exitosa (204 No Content)');
         setData({});
         return {};
       }
       
-      const result = await response.json();
-      setData(result);
-      return result;
+      // Si hay contenido en la respuesta, intentamos parsearlo
+      if (responseText && responseText.trim() !== '') {
+        try {
+          const result = JSON.parse(responseText);
+          setData(result);
+          return result;
+        } catch (e) {
+          console.error('Error al parsear respuesta JSON:', e);
+          return {};
+        }
+      }
+      
+      return {};
     } catch (err) {
+      console.error('Error en la petición DELETE:', err);
       setError(err.message || 'Error desconocido');
       return null;
     } finally {
