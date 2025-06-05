@@ -50,10 +50,9 @@ function Header() {
   return (
     <header
       className="d-flex align-items-center justify-content-between px-4 fixed-top bg-primary-green"
-      style={{ height: '125px' }}
     >
       <Link to="/">
-        <img src={logo} alt="Logo" style={{ height: '90px', cursor: 'pointer', marginTop: '35px' }} />
+        <img src={logo} alt="Logo" style={{ height: '90px', cursor: 'pointer' }} />
       </Link>
       
       {/* Botón hamburguesa visible en pantallas pequeñas */}
@@ -70,7 +69,7 @@ function Header() {
 
       {/* Navegación normal para pantallas >= sm */}
       <nav className="d-none d-md-block">
-        <ul className="nav justify-content-end" style={{ listStyle: 'none', paddingTop: '65px' }}>
+        <ul className="nav justify-content-end" style={{ listStyle: 'none' }}>
           {/* Botón de Gestión para usuarios autenticados (solo visible si no estamos en /principal) */}
           {showGestionButton && (
             <li className="nav-item">
